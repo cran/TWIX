@@ -56,7 +56,8 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
                 which=Perm[id[1:(topn+1)], ],
                 score=rep(K,length(1:(topn+1))))
         }
-    } else {
+    }
+    else {
         typ <- charmatch(meth,c("deviance", "local","grid"))
         if (typ == 1)
             meth <- 0
@@ -155,10 +156,12 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
                     dd <- ww <- vector()
                     id.l<-1+which((split_end[[1]][2:(m-1)]>split_end[[1]][1:(m-2)]) &
                             (split_end[[1]][2:(m-1)] > split_end[[1]][3:m]))
-                    if(sum(split_end[[1]][1] > split_end[[1]]) >= m)
-                        id.l <- c(id.l,2)
-                    if(sum(split_end[[1]][m] > split_end[[1]]) >= m)
-                        id.l <- c(id.l,(m+1))
+                    if(sum(split_end[[1]][1] > split_end[[1]])+1 >= m){
+                        id.l <- c(1,id.l)
+                        }
+                    if(sum(split_end[[1]][m] > split_end[[1]])+1 >= m){
+                        id.l <- c(m,id.l)
+                        }
                     dd <- split_end[[1]][id.l]
                     ww <- split_end[[2]][id.l]
                     d <- list(x=dd);wh<-ww

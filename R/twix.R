@@ -135,6 +135,9 @@ TWIX <- function(formula,data=NULL,test.data=0,subset=NULL,
         meth <- "deviance"
         topn.meth <- "complete"
         }
+    if(lev > 2 && meth == "local"){
+        meth <- "deviance"
+        }
     k.topn <- round(length(topn)/(n-1))
     if(k.topn == 0) k.topn <-1
     Dev.leaf <- function(x) {
