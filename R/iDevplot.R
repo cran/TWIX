@@ -1,5 +1,5 @@
 iDevplot<-function (rsp, data,col=1, ...) {
-    require(iplots)
+    #require(iplots)
     if (!is.factor(rsp))
         warning("response must be a factor!")
     if (!is.data.frame(data))

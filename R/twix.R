@@ -258,8 +258,8 @@ TWIX <- function(formula,data=NULL,test.data=0,subset=NULL,
             mindev=dmin,minbucket=minBucket,data=m,newdata=test.d,k=h,oldspv=oldspvar,LL=lev) {
         ans <- 0
         if(LL <= 2) gdev <- dev
-        if(dim(data)[2] <= 2) oldspv <- 0
-        if(id.var != oldspv){
+        #if(dim(data)[2] <= 2) oldspv <- 0
+        if(dev > 0){
             if(is.null(dim(spoint))) {
             ans <- .Call("split_rule",
                     as.numeric(dev),

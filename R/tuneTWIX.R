@@ -34,6 +34,6 @@ tuneTWIX<-function(formula, data = NULL, minbuck = seq(5,30,by=5), xval = 10, ru
     ij<-which.min(ll$y)
     CVL<-apply(CVL,2,median)
     ji<-which(ll$x[ij] == minbuck)
-    out<-data.frame(minbuck=3*ll$x[ij],maxdepth=round(CVL[ji]))
+    out<-data.frame(minsplit=3*ll$x[ij],maxdepth=round(CVL[ji]))
     out
 }
