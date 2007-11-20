@@ -1,0 +1,25 @@
+import(rpart)
+
+
+export(TWIX,bagg,Devplot,export,get.splitvar,
+	get.tree,iDevplot,pred.value,
+	scree.plot,splitt,trace.plot,
+	tuneTWIX,sp.slave,nlogn,fullrks,
+	bootTWIX)
+
+
+
+S3method(summary, TWIX)
+S3method(summary, bootTWIX)
+S3method(deviance, TWIX)
+S3method(predict, TWIX)
+S3method(bagg, TWIX)
+S3method(print, TWIX)
+S3method(print, bootTWIX)
+S3method(print, id.tree)
+S3method(print, single.tree)
+S3method(print, padj.tree)
+S3method(plot, TWIX)
+S3method(plot, bootTWIX)
+
+useDynLib(TWIX)

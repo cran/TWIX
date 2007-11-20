@@ -5,7 +5,8 @@
  Deviance plot.
 }
 \usage{
-Devplot(rsp, x,interactiv=FALSE,sample=c(FALSE,0),col=1,classes=FALSE,pch=16, ...)
+Devplot(rsp, x,interactiv=FALSE,sample=c(FALSE,0),col=1,
+	classes=FALSE,pch=16, ...)
 }
 \arguments{
 \item{rsp}{response variable.}
@@ -18,10 +19,17 @@ Devplot(rsp, x,interactiv=FALSE,sample=c(FALSE,0),col=1,classes=FALSE,pch=16, ..
 \item{...}{other parameters to be passed through to plotting functions.}
 }
 \seealso{
-  \code{\link{iDevplot}},\code{\link{plot.TWIX}},\code{\link{TWIX}}}
+  \code{\link{iDevplot}},\code{\link{plot.TWIX}},\code{\link{TWIX}}
 }
 \examples{
 data(olives)
-#Devplot(olives$Region,olives[,1:8])
+#
+## for one predictor variable
+#
+Devplot(olives$Region,olives$oleic)
+#
+## for more as one predictor variable
+#
+Devplot(olives$Region,olives[,1:8])
 }
 \keyword{tree}

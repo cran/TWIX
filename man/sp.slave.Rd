@@ -8,7 +8,7 @@ Internal functions of TWIX.
 sp.slave(rsp, m, test.data, Dmin = 0.01, minsplit = 20,
     minbucket=round(minsplit/3),topN = 1, method = "deviance",
     topn.method = "complete", level = 3, lev = 0, st = 1,
-    tol = 0.1, K = 0 , oldspvar=0)
+    tol = 0.1, K = 0 , oldspvar=0,splitf="entropy",robust=FALSE)
 }
 \arguments{
   \item{rsp}{a response variable.}
@@ -39,6 +39,9 @@ sp.slave(rsp, m, test.data, Dmin = 0.01, minsplit = 20,
   \item{lev}{Internal parameter.}
   \item{K}{k-fold cross-validation.}
   \item{oldspvar}{internal parameter.}
+  \item{splitf}{kind of the splitting function to be used. It can be one of \code{"entropy"}(default) or \code{"p-adj"}.
+	If set to \code{"p-adj"}, the p-value adjusted classification tree will be build.}
+  \item{robust}{If set to \code{TRUE}, robust entropy estimation will be used.}
 }
 \seealso{
   \code{\link{TWIX}}, \code{\link{predict.TWIX}},

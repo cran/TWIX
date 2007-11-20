@@ -10,7 +10,7 @@ Bootstrap samples of the Greedy-TWIX-trees.
 bootTWIX(formula, data=NULL,test.data=0,N=1,topN=1,subset=NULL,
                     method="deviance",topn.method="complete",
                     cluster=NULL,minsplit=30,minbucket=round(minsplit/3),
-                    Devmin=0.1,level=20,score=1,tol=0.15)
+                    Devmin=0.1,level=20,score=1,tol=0.15,splitf ="entropy")
 }
 \arguments{
 \item{formula}{formula of the form \code{y ~ x1 + x2 + \ldots},
@@ -48,6 +48,8 @@ node.}
   }
 \item{tol}{parameter, which will be used, if \code{topn.method} is set to
     \code{"single"}.}
+\item{splitf}{kind of the splitting function to be used. It can be one of \code{"entropy"}(default) or \code{"p-adj"}.
+	If set to \code{"p-adj"}, the p-value adjusted classification tree will be build.}
 }
 \value{a list with the following components :
 \item{call}{the call generating the object.}

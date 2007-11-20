@@ -11,10 +11,10 @@
 \item{col}{the color for points.}
 \item{...}{other parameters to be passed through to plotting functions.}
 } \seealso{
-  \code{\link{Devplot}},\code{\link{plot.TWIX}},\code{\link{TWIX}}}
+  \code{\link{Devplot}},\code{\link{plot.TWIX}},\code{\link{TWIX}}
 }
 \examples{ 
-data(olives)
+#data(olives)
 #iDevplot(olives$Region,olives[,c(1:8)])
 }
 \keyword{tree}

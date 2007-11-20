@@ -5,7 +5,7 @@
 This function tunes hyperparameters minbuck and maxdepth.
 }
 \usage{
-tuneTWIX(formula, data = NULL, minbuck = seq(5, 30, by = 5), 
+tuneTWIX(formula, data = NULL, minbuck = seq(5, 20, by = 5), 
     xval = 10, runs = 10, trace.plot = TRUE) }
 \arguments{
 \item{formula}{formula of the form \code{y ~ x1 + x2 + \ldots},

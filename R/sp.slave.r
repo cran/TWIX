@@ -1,11 +1,12 @@
 sp.slave <- function(rsp,m,test.data,Dmin=0.01,minsplit=20,
         minbucket=round(minsplit/3),topN=1,method="deviance",
-        topn.method="complete",level=3,lev=0,st=1,tol=0.1,K=0,oldspvar=0)
+        topn.method="complete",level=3,lev=0,st=1,tol=0.1,
+		K=0,oldspvar=0,splitf="entropy",robust=FALSE)
 {
 	n <- length(m)
     sp.sl <- function(rsp,m,test,dmin=Dmin,minSplit=minsplit,minBucket=minbucket,
-            topn=topN,meth=method,topnmeth=topn.method,
-            levelN=level,levv=lev,lstep=st,tl=tol,kfold=K,oldspV=oldspvar)
+            topn=topN,meth=method,topn.meth=topn.method,
+            levelN=level,levv=lev,lstep=st,tl=tol,kfold=K,oldspV=oldspvar,splf=splitf,robustt=robust)
     {
     Dev.leaf <- function(x) {
         TD <- 0
@@ -28,31 +29,92 @@ sp.slave <- function(rsp,m,test.data,Dmin=0.01,minsplit=20,
     }
     if(levv == 2 && meth == "grid") {
         meth <- "deviance"
-        topnmeth <- "complete"
+        topn.meth <- "complete"
         }
     k.topn <- round(length(topn)/(n-1))
     if(k.topn == 0) k.topn <-1
-
-	S <- lapply(m[2:n],
-		splitt,
-		rsp,
-        meth=meth,
-        lstep=lstep,
-        topn=if(topnmeth =="single")
-        			k.topn
-            	else
-                    length(topn)
-		,topn.meth=topnmeth,
-		test=FALSE,
-		level=levv,K=kfold)
-
-
+	if(splf == "entropy"){
+		if(robustt && levv < 2){
+			imp<-impor(m[,2:n],rsp,runs=15)
+			TTopn<-20
+			S <- lapply(m[2:n],
+					splitt,
+					rsp,
+					meth=meth,
+					lstep=lstep,
+					topn=TTopn,
+					topn.meth="complete",
+					test=FALSE,
+					level=levv,K=kfold)
+			for(v in 1:length(S)){
+				a <- ((S[[v]]$dev/max(S[[v]]$dev)))*imp[[2]][v]*4
+				S[[v]]$dev<-a
+			}
+		}
+		else{
+			if(length(topn) == 1)
+				Ttest <- TRUE
+			else
+				Ttest <- FALSE
+			S <- lapply(m[2:n],
+					splitt,
+					rsp,
+					meth=meth,
+					lstep=lstep,
+					topn=if(topn.meth =="single")
+							k.topn
+						else
+							length(topn)
+					,topn.meth=topn.meth,
+					test=Ttest,
+					level=levv,K=kfold)
+		}
+	}
+	if(splf == "p-adj"){
+		S <- lapply(m[2:n],function(x,y){
+				xx <- sort(x)
+				ties <- duplicated(xx)
+				mm <- which(!ties) - 1
+				mm <- mm[mm >= floor(length(y)*0.1)]
+				mm <- mm[mm <= floor(length(y)*(max(table(y)/length(y))))]
+				if(length(mm) > 1){
+					y <- as.numeric(y)
+					err <- ncmaxstat(y,x,
+								smethod="Wilcoxon",
+								pmethod="Lau94",
+								minprop=0.1,
+								maxprop=max(table(y)/length(y)),
+								alpha=0.05)
+					if(length(err$p.value) < 1 || is.na(err$p.value))
+						err$p.value <- 1
+						Sdev<- err$p.value
+					if(length(Sdev) < 1 || is.na(Sdev))
+						Sdev <- 1
+						Sdev<-as.numeric(Sdev)
+					if(length(err$estimate) < 1 || is.na(err$estimate)){
+						Swhich <- 1
+					}
+					else{
+						Swhich <- err$estimate+
+							(sort(x[as.numeric(err$estimate) < x])[1] - as.numeric(err$estimate))/2
+						Swhich <- as.numeric(Swhich)
+					}
+					if(Sdev > 1)
+							list(dev=0,globD=1,which=0)
+					else
+							list(dev=1-Sdev,globD=1,which=Swhich)
+				}
+				else{
+					list(dev=0,globD=1,which=0)
+				}
+		},y=rsp)
+	}
     if( kfold != 0 && levv < 2 && nrow(m) > 60) {
         S_summ <- Var_id <- id_Var <- vector()
         which <- list()
         globD <-k<-0
         if (S[[1]]$globD != 0){
-            if (topnmeth !="single")  k <- 1
+            if (topn.meth !="single")  k <- 1
             S_summ <- .Call("split_sum_cr",S,length(S),as.integer(k),as.numeric(tl),PACKAGE="TWIX")
             S <- 0
             which <- S_summ[[3]]
@@ -71,7 +133,7 @@ sp.slave <- function(rsp,m,test.data,Dmin=0.01,minsplit=20,
         S_summ <- which <- list()
         k<-0
         if (S[[1]]$globD != 0){
-            if (topnmeth !="single")  k <- 1
+            if (topn.meth !="single")  k <- 1
             S_summ <- .Call("split_sum",S,length(S),as.integer(k),as.numeric(tl),PACKAGE="TWIX")
             S <- 0
             which <- S_summ[[3]]
@@ -85,82 +147,115 @@ sp.slave <- function(rsp,m,test.data,Dmin=0.01,minsplit=20,
 			}
 		}
 	}
-print("HALLO0")
     splvar <- vector()
     Lcut <- Ltest <- Rcut <- Rtest <- list()
     make.node<- function(y,dev=S_summ[[1]][y],gdev=S_summ[[2]],
             spoint=which[[id_Var[y]]],var.id=Var_id[y],id.var=id_Var[y],
             mindev=dmin,minbucket=minBucket,data=m,newdata=test,k=h,oldspv=oldspV,LL=levv) {
         ans <- 0
-        if(LL <= 2) gdev <- dev
-        if(dim(data)[2] <= 2) oldspv <- 0
-        if(id.var != oldspv){
+        #if(LL <= 2) gdev <- dev
+        #if(dim(data)[2] <= 2) oldspv <- 0
+        if(length(dev) > 0 && dev > 0){
             if(is.null(dim(spoint))) {
-            ans <- .Call("split_rule",
+				ans <- .Call("split_rule",
                     as.numeric(dev),
                     as.numeric(gdev),
                     as.numeric(spoint[var.id]),
                     as.integer(minbucket),
                     as.numeric(mindev),
                     as.numeric(data[,id.var+1]),
-                    as.numeric(newdata[,id.var+1]),
+                    if(!is.null(newdata[,id.var+1]))
+                        as.numeric(newdata[,id.var+1])
+                    else
+                        as.numeric(0.0),
                     PACKAGE="TWIX")
-            Splitp <- spoint[var.id]
-            Splitvar <- attr(data[id.var+1],"names")
-            spvar <- data[,id.var+1]
-            dist <- quantile(c(Splitp-spvar[spvar < Splitp],spvar[spvar > Splitp]-Splitp))[3]
+				Splitp <- spoint[var.id]
+				Splitvar <- attr(data[id.var+1],"names")
+				spvar <- data[,id.var+1]
+				dist <- Dev.leaf(rsp)
             }
             else{
-            ans <- .Call("split_rule",
+				ans <- .Call("split_rule",
                     as.numeric(dev),
                     as.numeric(gdev),
                     as.numeric(spoint[var.id,]),
                     as.integer(minbucket),
                     as.numeric(mindev),
                     as.numeric(factor(data[,id.var+1])),
-                    if(!is.null(newdata)){
+                    if(!is.null(newdata))
                         as.numeric(factor(newdata[,id.var+1]))
-                    }else{
-                    as.numeric(0.0)}
+                    else
+                    as.numeric(0.0)
                     ,PACKAGE="TWIX")
-            Splitp <- spoint[var.id,]
-            Splitvar <- attr(data[id.var+1],"names")
-            attr(Splitp,"names")<-levels(factor(data[[id.var+1]]))
-            dist<-ks.t<-0
-            }
+				Splitp <- spoint[var.id,]
+				Splitvar <- attr(data[id.var+1],"names")
+				attr(Splitp,"names")<-levels(factor(data[[id.var+1]]))
+				dist <- Dev.leaf(rsp)
+				ks.t <- 0
+			}
         } else ans[[1]] <- 0
         if(ans[[1]]){
             rsp <- data[[1]]
-            ylev <- .Call("tw_table",as.integer(rsp),levels(rsp),PACKAGE="TWIX")
+            ylev <- .Call("tw_table",
+					as.integer(rsp),
+					as.character(levels(rsp)),
+					PACKAGE="TWIX")
             Prob <- ylev/nrow(data)
             Pred.class <-attr(which.max(ylev),"names")
-            if(is.null(dim(spoint))){
-                max.cl.l<-names(sort(table(rsp[spvar < Splitp]),decreasing=TRUE)[1])
-                max.cl.r<-names(sort(table(rsp[spvar >= Splitp]),decreasing=TRUE)[1])
-                id.p.l <- which(spvar < Splitp & rsp == max.cl.l)
-                id.p.r <- which(spvar >= Splitp & rsp != max.cl.l & rsp == max.cl.r)
-                if(length(id.p.l) > 10 && length(id.p.r) > 10){
-                    ks.t <- mean(spvar[id.p.r])-mean(spvar[id.p.l])
-                }else{
-                    ks.t<-0
+            Dev.leaf2 <- function(x,z="gini"){
+                TD <- TD2 <- 0
+                CCR <- table(x)
+                s <- sum(CCR)
+                if(z == "gini"){
+                    TD <- sum(s*sapply(CCR,function(x,y){ (x/y)*(1-(x/y))},y=s))
+                    round(TD,digits=6)
+                }
+                else{
+					# misclassification rate
+                    TD2 <- s*(1-max(CCR)/s)
+                    round(TD2,digits=6)
                 }
             }
+			intervar <- function(X,rsp){
+				out <- sapply(levels(rsp),function(x,y){which(x==y)},y=rsp)
+				gr.mean <- lapply(out,function(x,y) mean(y[x,]),y=X)
+				ges.mean <- sapply(X,mean)
+				out1 <- t(as.data.frame(lapply(gr.mean,function(x,y) (x-y)^2,y=ges.mean)))
+				sum(apply(out1,2,sum))
+			}
+			intravar <- function(X,rsp){
+				out <- sapply(levels(rsp),function(x,y){which(x==y)},y=rsp)
+				gr.mean <- lapply(out,function(x,y) mean(y[x,]),y=X)
+				B <- rep(0,ncol(X))
+				for(j in 1:ncol(X)){
+					for(i in 1:length(gr.mean)){
+						B[j] <- B[j]+sum((X[out[[i]],j]-gr.mean[[i]][j])^2)
+					}
+				}
+				sum(B)
+			}
+			ks.t<-length(rsp)
+			
             splvar[k] <<- id.var+1
             if(nrow(newdata) > 0 && !is.null(newdata)) {
                 rspt <- newdata[[1]]
                 dev.test <- Dev.leaf(rspt)
                 id.test <- Pred.class == rspt
-                fit.test <- .Call("tw_table",as.integer(rspt[id.test]),levels(rspt[id.test]),PACKAGE="TWIX")
+                fit.test <- .Call("tw_table",
+						as.integer(rspt[id.test]),
+						as.character(levels(rspt[id.test])),
+						PACKAGE="TWIX")
                 rspt <- 0
-                Ltest[[k]]<<-newdata[as.logical(ans[[3]]),]
-                Rtest[[k]]<<-newdata[!as.logical(ans[[3]]),]
+                Ltest[[k]] <<- newdata[as.logical(ans[[3]]),]
+                Rtest[[k]] <<- newdata[!as.logical(ans[[3]]),]
             }
             else {
                 dev.test <- fit.test <- 0
                 Ltest[[k]] <<- NULL
                 Rtest[[k]] <<- NULL
                 }
-            Sval[[k]] <<- list(Splitp=Splitp,Splitvar=Splitvar,
+            Sval[[k]] <<- list(Splitp=Splitp,
+					Splitvar=Splitvar,
                     Obs=sum(ylev),Dev=dev,
                     Dev.test= dev.test,
                     fit.tr=sum(rep(Pred.class,length(rsp)) == rsp),
@@ -174,7 +269,6 @@ print("HALLO0")
         else
             return(FALSE)
     }
-print("HALLO1")
     h<-1
     if(length(S_summ) > 0 && length(S_summ[[1]]) > 0)
     for (w in topn)  {
@@ -185,13 +279,20 @@ print("HALLO1")
                 ans<-make.node(w)
                 if (!ans && !is.na(S_summ[[1]][w+1])){
                     w<-w+1
-                    make.node(w)
+					ans <- make.node(w)
+                    if(!ans && !is.na(S_summ[[1]][w+1])){
+						w <- w+1
+                        ans <- make.node(w)
+                        if(!ans && !is.na(S_summ[[1]][w+1])){
+							w <- w+1
+                            ans <- make.node(w)
+						}
+					}
                 }
             }
         }
     }
-print("HALLO2")
-    S_summ<-which<-Var_id<-id_Var<-0
+    S_summ <- which <- Var_id <- id_Var <- 0
 	if (length(Lcut) > 0 && length(Rcut) > 0 ) {
 		m<-test<-0
 		E <-list(split=Sval,
@@ -205,7 +306,7 @@ print("HALLO2")
                         minBucket=minBucket,
                         topn=topn,
                         meth=meth,
-                        topnmeth=topnmeth,
+                        topn.meth=topn.meth,
                         levelN=levelN,
                         levv=levv,
                         lstep=lstep,
@@ -243,7 +344,7 @@ print("HALLO2")
                         minBucket=minBucket,
                         topn=topn,
                         meth=meth,
-                        topnmeth=topnmeth,
+                        topn.meth=topn.meth,
                         levelN=levelN,
                         levv=levv,
                         lstep=lstep,

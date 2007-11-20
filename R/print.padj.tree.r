@@ -1,4 +1,4 @@
-print.single.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
+print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
     n <- i <- 1
     no.split <- FALSE
     if(!is.list(x[[1]]) && x[[1]] == 0){
@@ -17,7 +17,7 @@ print.single.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
         leaf <- "*"
         if (i==1) {
             cat("n=", Obs, "\n\n")
-            cat( "node), split, n, deviance, yval, (yprob)\n" )
+            cat( "node), split, n, p-value for nodes and deviance for leafs, yval, (yprob)\n" )
             cat(" * denotes terminal node\n\n")
             if(no.split){
                 dev <- 0
@@ -28,7 +28,7 @@ print.single.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                 cat(node,split.v,Obs," ",dev,yval,yprob,")",leaf,"\n")
             }
             else{
-                dev <- round(baum$split[[1]]$Dev,digits=3)
+                dev <- format(1-baum$split[[1]]$Dev,4)
                 yprob <- paste(format(as.vector(round(baum$split[[1]]$Prob,4)),
                     nsmall=1),sep="")
                 yval <- paste(baum$split[[1]]$Pred.class,"(")
@@ -36,15 +36,14 @@ print.single.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                 cat(node,split.v,Obs," ",dev,yval,yprob,")","\n")
             }
         }
-        if (length(baum$left$split)>0 && !no.split) {
-            if(length(split.p) >1) {
+        if (length(baum$left$split) > 0 && !no.split) {
+            if(length(split.p) > 1) {
                 split.pl<-names(split.p)[split.p == 1]
-                #print(split.pl)
                 n <<- 2*anf
                 node <- paste( n,")",sep = "" )
                 yval <- paste(baum$left$split[[1]]$Pred.class,"(")
                 Obs <- baum$left$split[[1]]$Obs
-                dev <- round(baum$left$split[[1]]$Dev,digits=3)
+                dev <- format(1-baum$left$split[[1]]$Dev,4)
                 yprob <- paste(format(as.vector(round(baum$left$split[[1]]$Prob,4)),
                     nsmall=1),sep="")
                 cat(abst,node,split.var,"= ")
@@ -60,7 +59,7 @@ print.single.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                 node <- paste( n,")",sep = "" )
                 yval <- paste(baum$left$split[[1]]$Pred.class,"(")
                 Obs <- baum$left$split[[1]]$Obs
-                dev <- round(baum$left$split[[1]]$Dev,digits=3)
+                dev <- format(1-baum$left$split[[1]]$Dev,4)
                 yprob <- paste(format(as.vector(round(baum$left$split[[1]]$Prob,4)),
                     nsmall=1),sep="")
                 cat(abst,node,split.var,"<",split.p,Obs,dev,yval,yprob,")","\n")
@@ -98,14 +97,14 @@ print.single.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                     dev,yval,"(",yprob,")",leaf,"\n")
                 }
             }
-        if (length(baum$right$split)>0 && !no.split){
-            if(length(split.p) >1){
+        if (length(baum$right$split) > 0 && !no.split){
+            if(length(split.p) > 1){
                 split.pr<-names(split.p)[split.p == 0]
                 n <<- 2*anf+1
                 node <- paste( n,")",sep = "" )
                 yval <- paste(baum$right$split[[1]]$Pred.class,"(")
                 Obs <- baum$right$split[[1]]$Obs
-                dev <- round(baum$right$split[[1]]$Dev,digits=3)
+                dev <- format(1-baum$right$split[[1]]$Dev,4)
                 yprob<-paste(format(as.vector(round(baum$right$split[[1]]$Prob,4)),
                     nsmall=1),sep="")
                 cat(abst,node,split.var,"= ")
@@ -121,7 +120,7 @@ print.single.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                 node <- paste( n,")",sep = "" )
                 yval <- paste(baum$right$split[[1]]$Pred.class,"(")
                 Obs <- baum$right$split[[1]]$Obs
-                dev <- round(baum$right$split[[1]]$Dev,digits=3)
+                dev <- format(1-baum$right$split[[1]]$Dev,4)
                 yprob<-paste(format(as.vector(round(baum$right$split[[1]]$Prob,4)),
                     nsmall=1),sep="")
                 cat(abst,node,split.var,">=",split.p,Obs,
@@ -162,7 +161,7 @@ print.single.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
         }
     }
     if (klimt) {
-        if (!is.data.frame(Data)) warning("Data is not a data.frame")
+        if (!is.data.frame(Data)) warning("\n Data is not a data.frame!\n")
         Data <- na.omit(Data)
         write.table(Data,file,row.names=FALSE,sep="\t",quote=FALSE)
         sink(file,TRUE)

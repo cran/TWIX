@@ -1,7 +1,7 @@
 \name{get.splitvar}
 \alias{get.splitvar}
 \title{
-  Methods for getting split variables from a single tree(single.tree).
+  Methods for getting split variables from a single tree.
 }
 \description{This function extracts a split variables from a \code{single.tree} 
     object.}

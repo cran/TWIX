@@ -30,14 +30,17 @@ get.splitvar <- function(x,sq=1:length(x$trees),parm="Splitvar") {
         ID
     }
     m<-DT<-list()
+    p<-1
     for(i in sq){
-        m[[i]]<-get.ID(x,n=i,which=parm)
+        m[[p]]<-get.ID(x,n=i,which=parm)
+        p<-p+1
         }
     MM<-matrix(,length(m),max(sapply(m,length)))
-    for(i in 1:length(m))
+    for(i in 1:length(m)){
         for(j in 1:length(m[[i]])) {
             MM[i,j]<-m[[i]][[j]]
         }
+    }
     #data.frame(MM)
     MM
 }

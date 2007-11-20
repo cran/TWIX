@@ -3,16 +3,18 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
                 lstep=1,test=FALSE,K=0,level=0)
 {
     if(K >= 0.5 || K < 0)
-        K<-0
+        K <- 0
     n<-length(rsp)
-    isCat <- if(is.factor(rsp)) 0 else 1
+    isCat <- if(is.factor(rsp)) FALSE else TRUE
     if (isCat) {
-        stop("   Response must be a factor!")
+        stop("\n   Response must be a factor!! \n")
     }
     else{
         rsp <- unclass(rsp)
         }
     if(svrks == 0 && is.factor(sv)) {
+        if(topn == 0)
+            topn<-32
         Dev<-Which<-vector()
         rtot<-n
         ltot<-0
@@ -21,7 +23,7 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
         right<-table(rsp)
         numclass<-length(right)
         numcat<-length(table(sv))
-        Wn<-2**(numcat-1)-1
+        Wn<-(2**(numcat-1))-1
         tsplit<-gray<-rep(1,length=numcat)  # Right -> 1  Left -> 0
         TD<-sum(-rtot*sapply(right/rtot,nlogn))        
         left<-rep(0,length=numclass)
@@ -73,7 +75,7 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
             s <- sample(rep(xgr,length=n),n)
             NN <- n-table(s)
             split_end <- .Call("split_cross",
-                        as.double(sv),
+                        as.numeric(sv),
                         as.integer(rsp),
                         as.integer(NN),
                         as.integer(svrks),
@@ -118,11 +120,18 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
             list(dev=d$x,globD=split_end[[4]],which=wh,score=sc)
         }
         else {
-            score<-2*d$x/max(d$x) + sc/max(sc)
+            score<-0.7*d$x/max(d$x) + 0.3*sc/max(sc)
             id <- sort(score,decreasing=TRUE,index.return = TRUE)$ix
-            d$x <- d$x[id[1:(topn+1)]]
-            wh <- wh[id[1:(topn+1)]]
-            sc <- sc[id[1:(topn+1)]]
+            if(topn != 0){
+                d$x <- na.omit(d$x[id[1:(topn+1)]])
+                wh <- na.omit(wh[id[1:(topn+1)]])
+                sc <- na.omit(sc[id[1:(topn+1)]])
+            }
+            else{
+                d$x <- na.omit(d$x[id])
+                wh <- na.omit(wh[id])
+                sc <- na.omit(sc[id])
+            }
             list(dev=d$x,globD=split_end[[4]],which=wh,score=sc)
             }
         }
@@ -145,7 +154,7 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
         }
         else {
             split_end <- .Call("split_single",
-                        as.double(sv),
+                        as.numeric(sv),
                         as.integer(rsp),
                         as.integer(n),
                         as.integer(svrks),
@@ -194,7 +203,10 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
             }
             else {
                 id<-sort(d$x,index.return=TRUE,decreasing=TRUE)$ix
-                list(dev=d$x[id[1:(topn+1)]],globD=split_end[[3]],which=wh[id[1:(topn+1)]])
+                if(topn == 0)
+                    list(dev=d$x[id],globD=split_end[[3]],which=wh[id])
+                else
+                    list(dev=d$x[id[1:(topn+1)]],globD=split_end[[3]],which=wh[id[1:(topn+1)]])
             }
         }
     }

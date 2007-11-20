@@ -20,7 +20,7 @@ scree.plot(formula, data = NULL, bars = TRUE, col = "grey",
 \item{...}{other parameters to be passed through to plotting functions.}
 }
 \seealso{
-  \code{\link{iDevplot}},\code{\link{plot.TWIX}},\code{\link{TWIX}}}
+  \code{\link{iDevplot}},\code{\link{plot.TWIX}},\code{\link{TWIX}}
 }
 \examples{
 data(olives)

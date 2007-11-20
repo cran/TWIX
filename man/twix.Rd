@@ -8,21 +8,21 @@
 TWIX(formula, data = NULL, test.data = 0, subset = NULL,
         method = "deviance", topn.method = "complete", cluster = NULL,
         minsplit = 30, minbucket = round(minsplit/3), Devmin = 0.05,
-        topN = 1, level = 30, st = 1, cl.level = 2, tol = 0.15, score = 1,
-        k = 0, trace.plot=FALSE, ...)
+	splitf = "entropy", topN = 1, level = 30, st = 1, cl.level = 2,
+	tol = 0.15, score = 1,k = 0, trace.plot=FALSE,robust = FALSE, ...)
 }
 \arguments{
   \item{formula}{formula of the form \code{y ~ x1 + x2 + \ldots},
     where \code{y} must be a factor and \code{x1,x2,\ldots} are numeric or factor.}
   \item{data}{an optional data frame containing the variables
-    in the model(training data).}
-  \item{test.data}{This can be a data frame containing new data, \code{0}(default),
-    or \code{"NULL"}.If set to \code{"NULL"} the bad obserations will be specified.}
+    in the model (training data).}
+  \item{test.data}{This can be a data frame containing new data, \code{0} (default),
+    or \code{"NULL"}. If set to \code{"NULL"} the bad obserations will be specified.}
   \item{subset}{an optional vector specifying a subset of observations
     to be used.}
   \item{method}{Which split points will be used? This can be \code{"deviance"}
     (default), \code{"grid"} or \code{"local"}. If the \code{method} is set to:\cr
-    \code{"local"} - the program uses the local maxima of the split function(entropy),\cr
+    \code{"local"} - the program uses the local maxima of the split function (entropy),\cr
     \code{"deviance"} - all values of the entropy,\cr
     \code{"grid"} - grid points.}
   \item{topn.method}{one of \code{"complete"}(default) or \code{"single"}.
@@ -53,6 +53,9 @@ TWIX(formula, data = NULL, test.data = 0, subset = NULL,
   \item{k}{k-fold cross-validation of split-function.
     k specify the part of observations which will be take in hold-out sample (k can be (0,0.5)).}
   \item{trace.plot}{Should trace plot be ploted?}
+  \item{splitf}{kind of the splitting function to be used. It can be one of \code{"entropy"}(default) or \code{"p-adj"}.
+	If set to \code{"p-adj"}, the p-value adjusted classification tree will be build.}
+  \item{robust}{If set to \code{TRUE}, robust entropy estimation will be used.}
   \item{\dots}{further arguments to be passed to or from methods.}
 }
 \value{a list with the following components :
@@ -64,23 +67,42 @@ TWIX(formula, data = NULL, test.data = 0, subset = NULL,
   \item{agg.id }{ vector specifying trees for aggregation.}
   \item{Bad.id}{ID-vector of bad observations from train data.}
 }
+\references{
+		Martin Theus, Sergej Potapov and Simon Urbanek (2006).
+		TWIX (Talk given at the 3rd Ensemble Workshop in Munich 2006)
+		\url{http://theusrus.de/Talks/Talks/TWIX.pdf}
+		
+        Lausen, B., Hothorn, T., Bretz, F. and Schmacher, M. (2004).
+        Assessment of Optimally Selected Prognostic Factors.
+        Biometrical Journal 46, 364-374.
+}
 \seealso{
   \code{\link{get.tree}}, \code{\link{predict.TWIX}},
   \code{\link{print.single.tree}}, \code{\link{plot.TWIX}},
   \code{\link{deviance.TWIX}}
 }
 \examples{
+
+
 data(olives)
+set.seed(123)
 i <- sample(572,150)
 ic <- setdiff(1:572,i)
 training <- olives[ic,]
 test <- olives[i,]
-#
-#Tree1<-TWIX(Region~.,data=training[,1:9],topN=c(9,2),method="local")
-#Tree1$trees
-#
-#pred<-predict(Tree1,newdata=test,sq=1:2)
-#
-#predict(Tree1,newdata=test,sq=1:2,ccr=TRUE)$CCR
+
+TM1<-TWIX(Region~.,data=training[,1:9],topN=c(4,3),method="local")
+TM1$trees
+pred <- predict(TM1,newdata=test,sq=1)
+predict(TM1,newdata=test,sq=1:2,ccr=TRUE)$CCR
+
+
+##
+## the p-value adjusted classification tree
+
+data(iris)
+TM2 <- TWIX(Species~.,data=iris,splitf="p-adj")
+predict(TM2,newdata=iris,sq=1,ccr=TRUE)$CCR
+
 }
 \keyword{tree}

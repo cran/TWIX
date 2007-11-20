@@ -9,7 +9,9 @@
                     TWIX  or bootTWIX function(s).}
 \usage{
 \method{plot}{TWIX}(x,sq = 1:length(x$trees),type = "deviance",
-            i.plot = FALSE,size = 3,freq = TRUE,breaks = "Sturges",pch = par("pch"),...)}
+            i.plot = FALSE,size = 3,freq = TRUE,breaks = "Sturges",
+	    pch = par("pch"),...)
+}
 \arguments{
   \item{x}{an object of class \code{TWIX}.}
   \item{sq}{Integer vector giving the number of trees to be plotted.}
@@ -34,16 +36,20 @@
   \code{\link{get.tree}}
 }
 \examples{
-  data(olives)
-  i <- sample(572,150)
-  ic <- setdiff(1:572,i)
-  training <- olives[ic,]
-  valid <- olives[i,]
-  #
-  #Tree<-TWIX(Region~.,training,test.data=valid,topN=c(10,2),method="local")
-  #plot(Tree)
-  #plot(Tree,type="ccr")
-  #plot(Tree,type="d&c")
-  #plot(Tree,i.plot=TRUE)
+
+data(olives)
+set.seed(123)
+i <- sample(572,150)
+ic <- setdiff(1:572,i)
+training <- olives[ic,]
+test <- olives[i,]
+
+TM1<-TWIX(Region~.,data=training[,1:9],test.data=test,topN=c(5,3),method="local")
+plot(TM1)
+plot(TM1,type="ccr")
+plot(TM1,type="d&c")
+
+#
+#plot(TM1,i.plot=TRUE)
 }
 \keyword{tree}

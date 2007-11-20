@@ -28,14 +28,19 @@
 }
 \examples{
 data(olives)
+set.seed(1234)
 i <- sample(572,150)
 ic <- setdiff(1:572,i)
 training <- olives[ic,]
 test <- olives[i,]
+
+Tree<-TWIX(Region~.,training,topN=c(5,2),method="local")
+pred<-predict(Tree,newdata=test,sq=1:2)
+
 #
-#Tree<-TWIX(Region~.,training,topN=c(5,2),method="local")
-#pred<-predict(Tree,newdata=test,sq=1:2)
+## for Correct Classification Rate
 #
-#predict(Tree,newdata=test,sq=1:5,ccr=TRUE)$CCR
+
+predict(Tree,newdata=test,sq=1:2,ccr=TRUE)$CCR
 }
 \keyword{tree}

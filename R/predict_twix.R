@@ -3,7 +3,7 @@ predict.TWIX <- function(object,newdata,sq=1,ccr=FALSE,...) {
         stop(" object not of class TWIX or single.tree ")
     if (any(is.na(newdata)))
         stop(" missing values in newdata ")
-    if (class(object) == "TWIX") {
+    if (class(object)[1] == "TWIX") {
         Dt <- model.frame(delete.response(terms(object$formula)),
             na.action=na.omit,newdata)
     }
@@ -26,12 +26,12 @@ predict.TWIX <- function(object,newdata,sq=1,ccr=FALSE,...) {
     }
     ##############
     Erg <- vector()
-    if (class(object) == "TWIX") {
-        ldata<-split(Dt,1:nrow(Dt))
+    if (class(object)[1] == "TWIX") {
+        ldata <- split(Dt,1:nrow(Dt))
         cat.levels <- attr(Dt,"cat.levels")
         mtree <- lapply(sq,function(x,y) {get.tree(y,x)[[1]]},object)
         if(!is.list(mtree[[1]]) && mtree[[1]] == 0){
-            mtree<-get.tree(object,1)
+            mtree <- get.tree(object,1)
             Erg <- matrix(rep(mtree[[6]],nrow(Dt)))
         }
         else{
@@ -44,11 +44,11 @@ predict.TWIX <- function(object,newdata,sq=1,ccr=FALSE,...) {
                     PACKAGE="TWIX")
         }
     }
-    if (class(object) == "single.tree") {
+    if (class(object)[2] == "single.tree") {
         ldata<-split(Dt,1:nrow(Dt))
         cat.levels <- attr(Dt,"cat.levels")
         mtree <- list(object[[1]])
-        if( mtree[[1]] == 0){
+        if( length(mtree[[1]]) == 0){
             mtree<-get.tree(object,1)
             Erg <- matrix(rep(mtree[[6]],nrow(Dt)))
         }
