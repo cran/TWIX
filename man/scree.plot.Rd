@@ -13,18 +13,18 @@ scree.plot(formula, data = NULL, bars = TRUE, col = "grey",
     where \code{y} must be a factor and \code{x1,x2,\ldots} are numeric or factor.}
 \item{data}{an optional data frame containing the variables in the model.}
 \item{bars}{the type of plot: barplot or lines.}
-\item{col}{The colors for lines or Bar's.}
+\item{col}{the colors for lines or Bar's.}
 \item{type}{the color for points.}
-\item{pch}{see par(pch =...).}
+\item{pch}{see \code{par(pch =...)}.}
 \item{ylim}{the y limits of the plot.}
 \item{...}{other parameters to be passed through to plotting functions.}
 }
 \seealso{
-  \code{\link{iDevplot}},\code{\link{plot.TWIX}},\code{\link{TWIX}}
+  \code{\link{plot.TWIX}},\code{\link{TWIX}}
 }
 \examples{
-data(olives)
-scree.plot(Region~.,data=olives,bars=FALSE,col=2)
-scree.plot(Region~.,data=olives,bars=TRUE)
+    data(olives)
+    scree.plot(Region~.,data=olives,bars=FALSE,col=2)
+    scree.plot(Region~.,data=olives,bars=TRUE)
 }
 \keyword{tree}

@@ -1,22 +1,25 @@
-#include <Rinternals.h>
-#include <Rdefines.h>
 #include <R.h>
 #include <Rmath.h>
+#include <Rinternals.h>
+#include <Rdefines.h>
 
-
-static int cmax(int *X,int n) {
- 	int i,max=0;
- 	for (i=0;i < n; i++) {
- 		if (X[i] > max) {
+static int cmax(int *X,int n){
+	int i,max=0;
+	for (i=0;i < n; i++) {
+		if (X[i] > max) {
 			max=X[i];
+			}
 		}
-	}
- 	return(max);
+	return(max);
 }
 
 static double clogn(double x)
- { if (x==0) return(0.0); else return(x*log(x)); }
-
+{
+	if (x <= 0.0) 
+		return(0.0); 
+	else 
+		return(x*log(x));
+}
 
 SEXP split_cross(  SEXP sv,SEXP rsp,SEXP NN, SEXP svrks,
 			SEXP s,SEXP K)

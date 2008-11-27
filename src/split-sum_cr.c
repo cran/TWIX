@@ -1,20 +1,22 @@
-#include <Rinternals.h>
-#include <Rdefines.h>
 #include <R.h>
 #include <Rmath.h>
+#include <Rinternals.h>
+#include <Rdefines.h>
 
-
-static double dmax(double *X,int n) {
-    int i,max=0.0;
-    for (i=0;i < n; i++) {
-        if (X[i] > max) {
-            max=X[i];
-        }
-    }
-    return(max);
+static double dmax(double *X,int n){
+ int i=0;
+ double max=0.0;
+ for (i=0;i < n; i++) {
+ 	if (X[i] > max) {
+		max=X[i];
+		}
+	}
+ return(max);
 }
 
-SEXP split_sum_cr( SEXP BASE, SEXP NV, SEXP meth, SEXP tol )
+
+
+SEXP split_sum_cr( SEXP BASE, SEXP meth, SEXP tol )
 {
     SEXP result_out,Ssum,which,Var_id2,id_Var2;
     SEXP globD,dev,scor,data,Ssumm,score;
@@ -65,7 +67,7 @@ SEXP split_sum_cr( SEXP BASE, SEXP NV, SEXP meth, SEXP tol )
         }
     }
     xx = dmax(REAL(Ssumm),k);
-    if(INTEGER(meth)[0] == 0){
+    if(1){
         l=0;
         for(i=0; i < k; i++){
             if(REAL(Ssumm)[i] > xx*REAL(tol)[0]){

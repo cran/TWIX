@@ -14,8 +14,8 @@ get.tree <- function (m.tr,n=1,id=NULL) {
 		x
 	}
     ausgabe <- function(m.tree){
-    root <- i
-    tree <- list(split=m.tree$split[tree.id[root]],
+		root <- i
+		tree <- list(split=m.tree$split[tree.id[root]],
                 left=if(tree.id[i<<-i+1]!=0)
                         ausgabe(m.tree$left[[tree.id[root]]])
                      else
@@ -50,7 +50,7 @@ get.tree <- function (m.tr,n=1,id=NULL) {
         Obs <-m.tree$split[[1]]$Obs + length(m.tr$Bad.id)
         prob <- m.tree$split[[1]]$Prob
         yval <- m.tree$split[[1]]$Pred.class
-        tree <- list(0,formula=m.tr$formula,Obs,0,prob,yval)
+        tree <- list(id=0,formula=m.tr$formula,Obs=Obs,Dev=0,Prob=prob,Pred.class=yval)
     }
 	if(class(m.tr)[2] == "p-adj"){
 		class(tree) <- "padj.tree"

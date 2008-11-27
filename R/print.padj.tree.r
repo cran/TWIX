@@ -12,8 +12,12 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
         anf <- n
         node <- paste( n,")",sep = "" )
         abst <- paste( rep(" ",i))
-        split.var <- baum$split[[1]]$Splitvar
-        split.p <- baum$split[[1]]$Splitp
+		if(!no.split){
+			split.var <- baum$split[[1]]$Splitvar
+			split.p <- baum$split[[1]]$Splitp
+		}
+		else
+			split.var <- split.p <- NULL
         leaf <- "*"
         if (i==1) {
             cat("n=", Obs, "\n\n")
@@ -36,7 +40,7 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                 cat(node,split.v,Obs," ",dev,yval,yprob,")","\n")
             }
         }
-        if (length(baum$left$split) > 0 && !no.split) {
+        if (!no.split && length(baum$left$split) > 0) {
             if(length(split.p) > 1) {
                 split.pl<-names(split.p)[split.p == 1]
                 n <<- 2*anf
@@ -97,7 +101,7 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                     dev,yval,"(",yprob,")",leaf,"\n")
                 }
             }
-        if (length(baum$right$split) > 0 && !no.split){
+        if (!no.split && length(baum$right$split) > 0){
             if(length(split.p) > 1){
                 split.pr<-names(split.p)[split.p == 0]
                 n <<- 2*anf+1
@@ -129,7 +133,7 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
             }
         }
         else if(!no.split){
-            if(length(split.p) >1) {
+            if(length(split.p) > 1) {
                 split.pr<-names(split.p)[split.p == 0]
                 n <<- 2*anf+1
                 node <- paste( n,")",sep = "" )

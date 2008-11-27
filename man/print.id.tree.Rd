@@ -1,10 +1,10 @@
 \name{print.id.tree}
 \alias{print.id.tree}
 \title{
-Internal functions of TWIX.
+Internal function of TWIX.
 }
 \description{
-    Print names from id.tree Object.}
+    Print names from \code{id.tree} object.}
 \usage{
 \method{print}{id.tree}(x, sq = 1:5, ...)
 }

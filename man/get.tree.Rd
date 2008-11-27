@@ -1,7 +1,7 @@
 \name{get.tree}
 \alias{get.tree}
 \title{
-  Methods for getting appointed trees from a multitree(TWIX).
+  Method for getting appointed trees from a TWIX-multitree.
 }
 \description{This function extracts a single tree from a \code{TWIX}
     object.}
@@ -18,9 +18,9 @@
   \code{\link{TWIX}}, \code{\link{predict.TWIX}}
 }
 \examples{
-data(olives)
-#TreeFR<-TWIX(Area~.,data=olives,topN=c(2,1),method="local")
-#TreeSG<-get.tree(TreeFR,n=1)
-#TreeSG
+    data(olives)
+    TreeFR <- TWIX(Area~.,data=olives,topN=c(2,1),method="local")
+    TreeSG <- get.tree(TreeFR,n=1)
+    TreeSG
 }
 \keyword{tree}

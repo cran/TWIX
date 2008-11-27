@@ -2,7 +2,7 @@ get.splitvar <- function(x,sq=1:length(x$trees),parm="Splitvar") {
     get.ID <- function (m.tr,n=1,id=NULL,which="Splitvar") {
         i <- k <- m <- 1
         ID<-vector()
-        if(class(m.tr) == "TWIX" )
+        if(class(m.tr)[1] == "TWIX" )
             m.tree <- m.tr$multitree
         else if (class(m.tr) == "bootTWIX")
             m.tree <- m.tr$multitree[[n]]
@@ -13,10 +13,12 @@ get.splitvar <- function(x,sq=1:length(x$trees),parm="Splitvar") {
         ausgabe <- function(m.tree){
             k<-m
             root <- i;
-            if("Splitvar"==which)
+            if("Splitvar" == which)
                 ID[m] <<-m.tree$split[tree.id[root]][[1]]$Splitvar
-            if("Dev"==which)
+            if("Dev" == which)
                 ID[m] <<-m.tree$split[tree.id[root]][[1]]$Dev
+			if("Split" == which)
+                ID[m] <<-m.tree$split[tree.id[root]][[1]]$Splitp
             if (tree.id[i<<-i+1]!=0){
                 m<<-2*k
                 ausgabe(m.tree$left[[tree.id[root]]])

@@ -1,8 +1,8 @@
 \name{fullrks}
 \alias{fullrks}
-\title{Internal functions of TWIX.}
+\title{Internal function of TWIX.}
 \description{
-Internal functions of TWIX.
+Internal function of TWIX.
 }
 \usage{
 fullrks(m)
@@ -11,8 +11,8 @@ fullrks(m)
 \item{m}{a numeric or character vector}
 }
 \examples{
-fullrks(c(3,1,2,4,5))
-a<-as.factor(c("yes","yes","no","no"))
-fullrks(a)
+    fullrks(c(3,1,2,4,5))
+    a <- as.factor(c("yes","yes","no","no"))
+    fullrks(a)
 }
 \keyword{tree}

@@ -1,10 +1,9 @@
 \name{get.splitvar}
 \alias{get.splitvar}
 \title{
-  Methods for getting split variables from a single tree.
+  Method for getting split variables from a single tree.
 }
-\description{This function extracts a split variables from a \code{single.tree} 
-    object.}
+\description{This function extracts a split variables from a \code{single.tree} object.}
 \usage{
   get.splitvar(x, sq = 1:length(x$trees),parm = "Splitvar")
 }
@@ -13,16 +12,16 @@
     \code{TWIX}}
   \item{sq}{Integer vector indicating for which trees a split variables
   are required.}
-  \item{parm}{Which information must be returned? This can be \code{"Splitvar"} or \code{"Dev"}}
+  \item{parm}{Which information must be returned? This can be \code{"Splitvar"}, \code{"Split"} or \code{"Dev"}}
 }
 \seealso{
   \code{\link{TWIX}},\code{\link{get.tree}}, \code{\link{predict.TWIX}}
 }
 \examples{
-data(olives)
-#TreeFR<-TWIX(Area~.,data=olives,topN=c(2,1),method="local",level=5)
-#TreeSG<-get.splitvar(TreeFR,sq=1)
-#TreeSG
-#get.tree(TreeFR)
+    data(olives)
+    TreeFR <- TWIX(Area~.,data=olives,topN=c(2,1),method="local",level=5)
+    TreeSG <- get.splitvar(TreeFR,sq=1)
+    TreeSG
+    get.tree(TreeFR)
 }
 \keyword{tree}

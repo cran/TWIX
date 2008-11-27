@@ -16,8 +16,8 @@ This data frame contains the following columns:\cr
 and 8 variables of fatty acid measurements.
 }
 \source{
-   Forina, M. and Armanino, C. and Lanteri, S. and Tiscornia, E. (1983)
-   \emph{Food Research and Data Analysis}, Applied Science Publishers,
-    CA 1983.
+   	Forina, M. and Armanino, C. and Lanteri, S. and Tiscornia, E. (1983)\cr
+   	\emph{Food Research and Data Analysis},\cr 
+	Applied Science Publishers, CA 1983.
 }
 \keyword{datasets}

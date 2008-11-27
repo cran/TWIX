@@ -1,5 +1,3 @@
-plot.bootTWIX <- function(x, ...) plot.TWIX(x, ...)
-
 plot.TWIX <- function(x,sq=1:length(x$trees),type="deviance",
             i.plot=FALSE,size=3,freq=TRUE,breaks = "Sturges",pch=par("pch"),...)
 {

@@ -1,8 +1,9 @@
-Devplot<-function (rsp, x,interactiv=FALSE,sample=c(FALSE,0),col=1,classes=FALSE,pch=16, ...) 
+Devplot <- function(rsp, x, col=1, classes=FALSE, pch=16, nsample=0, ...) 
 {
     name <- names(x)
     outl <- fact <- FALSE
     kl <- vector()
+	interactiv <- FALSE
     if (!is.factor(rsp)) 
         stop("response must be a factor!")
     if (!is.data.frame(x) && !inherits(x, "TWIX")){
@@ -60,17 +61,17 @@ Devplot<-function (rsp, x,interactiv=FALSE,sample=c(FALSE,0),col=1,classes=FALSE
                 points(x[,2],newL,col=unclass(x[,1]),pch=pch, ...)
                 }
         }
-        else if (sample[1]){
-            out<-list()
-            for(m in 1:sample[2]){
-                icv<-sample(1:nrow(x),0.75*nrow(x))
-                out[[m]]<-splitt(x[icv,2],x[icv,1],test=TRUE)
+        else if(nsample > 0){
+            out <- list()
+            for(m in 1:nsample){
+                icv <- sample(1:nrow(x),0.632*nrow(x))
+                out[[m]] <- splitt(x[icv,2],x[icv,1],test=TRUE)
                 }
-            yaxlim<-max(sapply(out,function(x) max(x$dev)))
+            yaxlim <- max(sapply(out,function(x) max(x$dev)))
             plot(out[[1]]$which,out[[1]]$dev,"l",col=col,xlab = "Splitpoints",
                     ylab =expression(Delta*i(s,t)),ylim=c(0,yaxlim),xlim=range(x[,2]))
-            for(i in 2:sample[2])
-                    lines(out[[i]]$which,out[[i]]$dev,col=col)
+            for(i in 2:nsample)
+				lines(out[[i]]$which,out[[i]]$dev,col=col)
         }
         else {
             newL<-newY(D,x[,1])
@@ -105,18 +106,18 @@ Devplot<-function (rsp, x,interactiv=FALSE,sample=c(FALSE,0),col=1,classes=FALSE
                     points(x[,i+1],newL[[inn]],cex=0.5,pch=pch,col=unclass(x[,1]))
                 }
         }
-        else if(sample[1]){
+        else if(nsample > 0){
             D <- lapply(2:N, function(z,y,n) {
-                    out<-list()
+                    out <- list()
                     for(g in 1:n){
-                        icv<-sample(1:nrow(y),0.75*nrow(y))
-                        out[[g]]<-splitt(y[icv, z], y[icv, 1], test = TRUE)
+                        icv <- sample(1:nrow(y),0.632*nrow(y))
+                        out[[g]] <- splitt(y[icv, z], y[icv, 1], test = TRUE)
                         }
                     out
-                    },y=x,n=sample[2])
-            yaxlim<-max(unlist(lapply(D,function(x) lapply(x,function(x)(max(x$dev))))))
-            xaxmax<-lapply(D,function(x) max(sapply(x,function(x)(max(x$which)))))
-            xaxmin<-lapply(D,function(x) min(sapply(x,function(x)(min(x$which)))))
+                    },y=x,n=nsample)
+            yaxlim <- max(unlist(lapply(D,function(x) lapply(x,function(x)(max(x$dev))))))
+            xaxmax <- lapply(D,function(x) max(sapply(x,function(x)(max(x$which)))))
+            xaxmin <- lapply(D,function(x) min(sapply(x,function(x)(min(x$which)))))
             if(length(kl > 0))
                 sql <- (1:(N - 1))[-kl]
             else
@@ -124,7 +125,7 @@ Devplot<-function (rsp, x,interactiv=FALSE,sample=c(FALSE,0),col=1,classes=FALSE
             for (i in sql){
                 plot(D[[i]][[1]]$which,D[[i]][[1]]$dev,"l",col=col,xlab = "Splitpoints", main = name[[i]],
                     ylab =expression(Delta*i(s,t)),ylim=c(0,yaxlim),xlim=c(xaxmin[[i]],xaxmax[[i]]))
-                for(h in 2:sample[2])
+                for(h in 2:nsample)
                     lines(D[[i]][[h]]$which,D[[i]][[h]]$dev,col=col)
                 }
         }

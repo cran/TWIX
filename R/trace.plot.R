@@ -118,7 +118,7 @@ trace.plot <-function(obj,sq=1,quality=NULL,color.palette=topo.colors,alpha = 1)
             l<-1
             for(j in xx){
                 lines(c(j,j+1),c(-i,-i))
-                text(j-0.1,-i-0.1,xvar[l])
+                text(j+0.4,-i-0.1,xvar[l])
                 l<-l+1
             }
         }
@@ -141,7 +141,7 @@ trace.plot <-function(obj,sq=1,quality=NULL,color.palette=topo.colors,alpha = 1)
             l<-1
             for(j in xx){
                 lines(c(j,j+1),c(-i,-i))
-                text(j-0.1,-i-0.1,xvar[l])
+                text(j+0.4,-i-0.1,xvar[l])
                 l<-l+1
             }
         }

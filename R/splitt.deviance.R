@@ -2,60 +2,34 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
                 meth="deviance",topn=1,topn.meth="complete",
                 lstep=1,test=FALSE,K=0,level=0)
 {
-    if(K >= 0.5 || K < 0)
-        K <- 0
-    n<-length(rsp)
-    isCat <- if(is.factor(rsp)) FALSE else TRUE
-    if (isCat) {
-        stop("\n   Response must be a factor!! \n")
-    }
+	if(K >= 0.5 || K < 0)
+		K <- 0
+	n<-length(rsp)
+	isCat <- if(is.factor(rsp)) FALSE else TRUE
+	if (isCat) {
+		stop("\n   Response must be a factor!! \n")
+	}
     else{
         rsp <- unclass(rsp)
-        }
+	}
     if(svrks == 0 && is.factor(sv)) {
         if(topn == 0)
             topn<-32
-        Dev<-Which<-vector()
-        rtot<-n
-        ltot<-0
-        sv<-factor(sv)
-        t.tot<-table(sv,rsp)
-        right<-table(rsp)
-        numclass<-length(right)
-        numcat<-length(table(sv))
-        Wn<-(2**(numcat-1))-1
-        tsplit<-gray<-rep(1,length=numcat)  # Right -> 1  Left -> 0
-        TD<-sum(-rtot*sapply(right/rtot,nlogn))        
-        left<-rep(0,length=numclass)
-        Cat_split<-.Call("split_cat", as.matrix(t.tot),
-                        as.numeric(TD),
-                        as.integer(right),
-                        as.integer(numcat),
-                        as.integer(numclass),
-                        as.numeric(n),
-                        as.integer(Wn),
-                        PACKAGE="TWIX")
-        anf<-1
-        enb<-numcat
-        Perm<-array(NA,c(Wn,numcat))
-        if(length(Cat_split[[3]]) > 0)
-        for(i in 1:Wn){
-            Perm[i,]<-Cat_split[[3]][anf:enb]
-            anf<-enb+1
-            enb<-enb+numcat
-        }
+		Cat_split <- .Call("split_cat_in",rsp,factor(sv),PACKAGE="TWIX")
         if(K != 0)
             K<-trunc(n/(n*K))
         else
             K<-1
         if(test || length(Cat_split[[1]]) <= topn){
-            list(dev=Cat_split[[1]],globD=TD,which=Perm,score=rep(K,Wn))
+            list(dev=Cat_split[[1]],
+				globD=Cat_split[[2]],
+				which=Cat_split[[3]],
+				score=rep(K,length(Cat_split[[1]])))
         }
         else {
-            id<-sort(Cat_split[[1]],index.return=TRUE,decreasing=TRUE)$ix
-            list(dev=Cat_split[[1]][id[1:(topn+1)]],
-                globD=TD,
-                which=Perm[id[1:(topn+1)], ],
+            list(dev=Cat_split[[1]][1:(topn+1)],
+                globD=Cat_split[[2]],
+                which=Cat_split[[3]][1:(topn+1), ],
                 score=rep(K,length(1:(topn+1))))
         }
     }
@@ -121,7 +95,7 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
         }
         else {
             score<-0.7*d$x/max(d$x) + 0.3*sc/max(sc)
-            id <- sort(score,decreasing=TRUE,index.return = TRUE)$ix
+            id <- my.sort(score,decreasing=TRUE,index.return = TRUE)$ix
             if(topn != 0){
                 d$x <- na.omit(d$x[id[1:(topn+1)]])
                 wh <- na.omit(wh[id[1:(topn+1)]])
@@ -193,16 +167,18 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
             }
             if(topn.meth == "single" && length(d$x) > (topn+1)) {
                 ld <- length(d$x)
-                id <- sort(d$x,index.return = TRUE)$ix
+                id <- my.sort(d$x,index.return = TRUE)$ix
                 id <- id[ld:(ld-(topn-1))]
                 d <- list(x=d$x[id])
                 wh <- wh[id]
             }
+			if(length(d$x) < 1)
+				return(list(dev=0,globD=split_end[[3]],which=0))
             if(test || length(d$x) <= topn){
                 list(dev=d$x,globD=split_end[[3]],which=wh)
             }
             else {
-                id<-sort(d$x,index.return=TRUE,decreasing=TRUE)$ix
+                id<-my.sort(d$x,index.return=TRUE,decreasing=TRUE)$ix
                 if(topn == 0)
                     list(dev=d$x[id],globD=split_end[[3]],which=wh[id])
                 else
@@ -211,6 +187,4 @@ splitt <- function(sv,rsp,svrks=fullrks(sv),
         }
     }
 }
-#clogn <- function(x) {
-#   .C("nlog", as.double(x),PACKAGE="toptree")[[1]]
-#}
+

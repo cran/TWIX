@@ -1,7 +1,7 @@
 \name{print.TWIX}
 \alias{print.TWIX}
 \alias{print.bootTWIX}
-\title{Print Method for TWIX or BootTWIXtree Object}
+\title{Print method for TWIX or BootTWIXtree object}
 \description{
 Print object of class \code{TWIX} or \code{bootTWIX}.
 }
@@ -15,7 +15,6 @@ Print object of class \code{TWIX} or \code{bootTWIX}.
 }
 \details{
 An object of class \code{TWIX} or \code{bootTWIX} is printed.
- Information about names of the intermediate variables is given.
 }
 \seealso{                                              
   \code{\link{TWIX}}, \code{\link{print.single.tree}}   

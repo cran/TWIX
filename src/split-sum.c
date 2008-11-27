@@ -1,24 +1,27 @@
-#include <Rinternals.h>
-#include <Rdefines.h>
 #include <R.h>
 #include <Rmath.h>
+#include <Rinternals.h>
+#include <Rdefines.h>
 
-static double dmax(double *X,int n) {
-    int i,max=0.0;
-    for (i=0;i < n; i++) {
-        if (X[i] > max) {
-            max=X[i];
-        }
-    }
-    return(max);
+static double dmax(double *X,int n){
+ int i=0;
+ double max=0.0;
+ for (i=0; i < n; i++) {
+ 	if (X[i] > max) {
+		max=X[i];
+		}
+	}
+ return(max);
 }
 
-SEXP split_sum( SEXP TBASE, SEXP NV, SEXP meth, SEXP tol )
+
+
+SEXP split_sum( SEXP TBASE, SEXP meth, SEXP tol )
 {
     SEXP result_out,Ssum,which,Var_id2,id_Var2;
     SEXP globD,dev,data,Ssumm;
     int i,j,k,l,sums=0;
-    double xx=0;
+    double xx=0.0;
     
     int N = LENGTH(TBASE);
     int ns[N];
@@ -53,12 +56,11 @@ SEXP split_sum( SEXP TBASE, SEXP NV, SEXP meth, SEXP tol )
             }
         }
     }
-    
-    if(INTEGER(meth)[0] == 0){
+    if(REAL(meth)[0] == 0){
         l=0;
         xx = dmax(REAL(Ssumm),k);
         for(i=0; i < k; i++){
-            if(REAL(Ssumm)[i] > xx*REAL(tol)[0]){
+            if(REAL(Ssumm)[i] >= xx*REAL(tol)[0]){
                 Var_id[l]=Var_id[i];
                 id_Var[l]=id_Var[i];
                 REAL(Ssumm)[l]=REAL(Ssumm)[i];
@@ -84,14 +86,31 @@ SEXP split_sum( SEXP TBASE, SEXP NV, SEXP meth, SEXP tol )
         }
     }
     else{
-        rsort_with_index(REAL(Ssumm),i_in,k);
+/*  Test tol in "single-method" */
+        l=0;
+        xx = dmax(REAL(Ssumm),k);
+        for(i=0; i < k; i++){
+            if(REAL(Ssumm)[i] >= xx*REAL(tol)[0]){
+                Var_id[l]=Var_id[i];
+                id_Var[l]=id_Var[i];
+                REAL(Ssumm)[l]=REAL(Ssumm)[i];
+                l++;
+                }
+            }
+        k=l;
+        int i_in2[k];
+        for(i=0; i < k; i++){
+            i_in2[i]=i;
+            }
+/*   anstelle alten i_in jetzt i_in2 */
+        rsort_with_index(REAL(Ssumm),i_in2,k);
         PROTECT(Ssum = allocVector(REALSXP,k));
         PROTECT(Var_id2 = allocVector(INTSXP,k));
         PROTECT(id_Var2 = allocVector(INTSXP,k));
         l=0;
         for(i=k-1; i >= 0; i--){
-            INTEGER(Var_id2)[l]=Var_id[i_in[i]];
-            INTEGER(id_Var2)[l]=id_Var[i_in[i]];
+            INTEGER(Var_id2)[l]=Var_id[i_in2[i]];
+            INTEGER(id_Var2)[l]=id_Var[i_in2[i]];
             REAL(Ssum)[l]=REAL(Ssumm)[i];
             l++;
         }
@@ -100,6 +119,7 @@ SEXP split_sum( SEXP TBASE, SEXP NV, SEXP meth, SEXP tol )
     for(i=0; i < N; i++){
         SET_VECTOR_ELT(which, i, VECTOR_ELT(VECTOR_ELT(TBASE,i),2));
     }
+
     PROTECT(result_out = allocVector(VECSXP,5));
     SET_VECTOR_ELT(result_out, 0, Ssum);
     SET_VECTOR_ELT(result_out, 1, globD);
