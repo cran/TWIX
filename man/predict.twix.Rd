@@ -23,7 +23,7 @@
     \item{...}{additional arguments.}
 }
 \seealso{
-    \code{\link{TWIX}},  \code{\link{plot.TWIX}}
+\code{\link{bagg}},  \code{\link{TWIX}},  \code{\link{plot.TWIX}}
 }
 \examples{
     library(ElemStatLearn)

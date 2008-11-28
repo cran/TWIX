@@ -32,8 +32,7 @@
     the deviance vs. CCR for test data.
 }
 \seealso{
-  \code{\link{TWIX}}
-  \code{\link{get.tree}}
+  \code{\link{TWIX}},  \code{\link{get.tree}}
 }
 \examples{
     data(olives)

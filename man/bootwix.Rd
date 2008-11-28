@@ -55,9 +55,9 @@ bootTWIX(formula, data=NULL, nbagg=1, topN=1, subset=NULL,
 }
 
 \seealso{
-\code{\link{TWIX}},\code{\link{get.tree}}
-\code{\link{predict.bootTWIX}},
-\code{\link{deviance.TWIX}},\code{\link{bagg.TWIX}},
+\code{\link{TWIX}},  \code{\link{get.tree}},  
+\code{\link{predict.bootTWIX}},  \code{\link{deviance.TWIX}},  
+\code{\link{bagg.TWIX}}
 }
 
 \examples{
@@ -74,9 +74,14 @@ bootTWIX(formula, data=NULL, nbagg=1, topN=1, subset=NULL,
     itr <- setdiff(1:nrow(SAheart),icv)
     train <- SAheart[itr,]
     test <- SAheart[icv,]
-  
+
+
+    ### Bagging with greedy decision trees as base classifier
     M1 <- bootTWIX(chd~.,data=train,nbagg=100)
+
+    ### Bagging with the p-value adjusted classification trees as base classifier
     M2 <- bootTWIX(chd~.,data=train,nbagg=100,splitf="p-adj",Devmin=0.01)
+
 
     pred1 <- predict(M1,test,sq=1:length(M1$trees))
     pred2 <- predict(M2,test,sq=1:length(M2$trees))

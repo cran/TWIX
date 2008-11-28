@@ -18,8 +18,8 @@ Devplot(rsp, x, col=1, classes=FALSE,
 \item{...}{other parameters to be passed through to plotting functions.}
 }
 \seealso{
-  \code{\link{plot.TWIX}},\code{\link{TWIX}},\code{\link{trace.plot}},
-  \code{\link{scree.plot}}
+  \code{\link{plot.TWIX}},  \code{\link{TWIX}},
+  \code{\link{trace.plot}},  \code{\link{scree.plot}}
 }
 \examples{
     data(olives)

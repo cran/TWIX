@@ -25,7 +25,7 @@ Urbanek, S. (2005). Following Traces of Lost Models.\cr
 Mira Digital Publishing.
 }
 \seealso{
-  \code{\link{plot.TWIX}},\code{\link{TWIX}},\code{\link{scree.plot}}
+  \code{\link{plot.TWIX}},  \code{\link{TWIX}},  \code{\link{scree.plot}}
 }
 \examples{
     data(olives)

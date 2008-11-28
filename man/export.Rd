@@ -17,13 +17,13 @@ Urbanek Simon (2002). KLIMT - A COSADA Software Project.\cr
 \url{http://rosuda.org/KLIMT}
 }
 \seealso{
-  \code{\link{predict.TWIX}},\code{\link{print.TWIX}}
+  \code{\link{predict.TWIX}},  \code{\link{print.TWIX}}
 }
 \examples{
     data(olives)
     Tree <- TWIX(Region~.,data=olives,topN=c(3,2),method="local",level=5)
     
     ###
-    export(Tree,c(1,3))
+    #export(Tree,c(1,3))
 }
 \keyword{tree}

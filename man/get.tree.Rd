@@ -15,7 +15,7 @@
   \item{id}{a vector of integers. ID of the tree.}
 }
 \seealso{
-  \code{\link{TWIX}}, \code{\link{predict.TWIX}}
+  \code{\link{TWIX}},  \code{\link{predict.TWIX}}
 }
 \examples{
     data(olives)

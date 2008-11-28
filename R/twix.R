@@ -13,9 +13,10 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
     m[[1]] <- as.name("model.frame.default")
     m <- eval(m, parent.frame())
 	
-	data.Na <- apply(data, 1, function(data) any(is.na(data)))
-	if(sum(data.Na) > 0) 
-		cat("\n Missing values in training data! \n\n")
+	data.Na <- apply(m, 1, function(x) any(is.na(x)))
+	if(sum(data.Na) > 0){
+		stop("\n Missing values in training data! \n\n")
+		}
     if(splitf == "p-adj")
         Devmin <- 1-Devmin
     twix.data <- function(Dt){

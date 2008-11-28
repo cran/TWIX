@@ -17,7 +17,7 @@ Returns the deviance of a fitted model object.
 The value of the deviance extracted from the object \code{object}.
 }
 \seealso{
-  \code{\link{TWIX}}, \code{\link{predict.TWIX}}, \code{\link{bootTWIX}}
+  \code{\link{TWIX}},  \code{\link{predict.TWIX}},  \code{\link{bootTWIX}}
 }
 \examples{
     data(olives)                                                   

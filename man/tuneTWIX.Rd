@@ -19,7 +19,7 @@ tuneTWIX(formula, data = NULL, minbuck = seq(5,20,by=5),
 \item{trace.plot}{Should trace plot be ploted?}
 }
 \seealso{
-  \code{\link{plot.TWIX}},\code{\link{TWIX}}
+  \code{\link{plot.TWIX}},  \code{\link{TWIX}}
 }
 \examples{
     library(mlbench)

@@ -15,7 +15,7 @@
   \item{parm}{Which information must be returned? This can be \code{"Splitvar"}, \code{"Split"} or \code{"Dev"}}
 }
 \seealso{
-  \code{\link{TWIX}},\code{\link{get.tree}}, \code{\link{predict.TWIX}}
+  \code{\link{TWIX}},  \code{\link{get.tree}},  \code{\link{predict.TWIX}}
 }
 \examples{
     data(olives)

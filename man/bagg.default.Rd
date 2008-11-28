@@ -25,8 +25,7 @@
 }
 
 \seealso{                                             
-  \code{\link{TWIX}}, \code{\link{predict.TWIX}}
-  \code{\link{bootTWIX}}
+  \code{\link{TWIX}},  \code{\link{predict.TWIX}},  \code{\link{bootTWIX}}
 }
   
 \examples{
@@ -43,9 +42,14 @@
     itr <- setdiff(1:nrow(SAheart),icv)
     train <- SAheart[itr,]
     test <- SAheart[icv,]
-  
+
+    ### TWIX Ensemble
     M1 <- TWIX(chd~.,data=train,topN=c(4,3),topn.method="single")
+
+    ### Bagging with greedy decision trees as base classifier
     M2 <- bootTWIX(chd~.,data=train,nbagg=30)
+
+    ### Bagging with the p-value adjusted classification trees as base classifier
     M3 <- bootTWIX(chd~.,data=train,nbagg=30,splitf="p-adj",Devmin=0.01)
 
     preda <- bagg(M1,test,sq=1:length(M1$trees),aggregation="majority")

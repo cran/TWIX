@@ -86,9 +86,9 @@ as predictors and a response variable must be categorical with two categories.
         \emph{Biometrical Journal} \bold{46}, 364-374.
 }
 \seealso{
-  \code{\link{get.tree}}, \code{\link{predict.TWIX}},
-  \code{\link{print.single.tree}}, \code{\link{plot.TWIX}},
-  \code{\link{bootTWIX}}
+\code{\link{get.tree}}, \code{\link{predict.TWIX}},  
+\code{\link{print.single.tree}}, \code{\link{plot.TWIX}},  
+\code{\link{bootTWIX}}
 }
 \examples{
     data(olives)

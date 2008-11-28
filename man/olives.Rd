@@ -1,11 +1,9 @@
 \name{olives}
 \alias{olives}
-\non_function{}
-\title{Classification of olive oils from their fatty acid 
-composition.}
+\title{Classification of olive oils from their fatty acid composition.}
 \description{
   The \code{olives} data frame has 572 rows and 10 columns.
- }
+}
 \usage{
 olives
 }

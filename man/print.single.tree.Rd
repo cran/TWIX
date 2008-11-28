@@ -23,7 +23,7 @@ Urbanek Simon (2002). KLIMT - A COSADA Software Project.\cr
 \url{http://rosuda.org/KLIMT}
 }
 \seealso{
-  \code{\link{get.tree}},\code{\link{TWIX}}
+  \code{\link{get.tree}},  \code{\link{TWIX}}
 }
 \examples{
     data(olives)
