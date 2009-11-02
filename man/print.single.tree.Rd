@@ -34,4 +34,4 @@ Urbanek Simon (2002). KLIMT - A COSADA Software Project.\cr
     ### for further analysis in KLIMT
     print(Tree,klimt=TRUE,Data=olives)
 }
-\keyword{tree}
+\keyword{print} \keyword{tree}

@@ -109,7 +109,7 @@ trace.plot <-function(obj,sq=1,quality=NULL,color.palette=topo.colors,alpha = 1)
         axis(4)
         ##
         par(mar = c(5, 2, 4, 2) + 0.1)
-        plot(-1,0,xlim=c(1,max(xx)+1),ylim=c(-max(y2)-0.2,0),
+        plot(-10,0,xlim=c(1,max(xx)+1),ylim=c(-max(y2)-0.2,0),
                 axes = FALSE,xlab="Split-variables",ylab="",main=tit.main)
         colors<-factor(trace.tree[,6])
         levels(colors)<-rev(color.palette(length(levels(colors)),alpha=alpha))
@@ -134,7 +134,7 @@ trace.plot <-function(obj,sq=1,quality=NULL,color.palette=topo.colors,alpha = 1)
     }
     else{
         par(mar = c(5, 2, 4, 2) + 0.1)
-        plot(-1,0,xlim=c(1,max(xx)+1),ylim=c(-max(y2)-0.2,0),
+        plot(-10,-10,xlim=c(1,max(xx)+1),ylim=c(-max(y2)-0.2,0),
                 axes = FALSE,xlab="Split-variables",ylab="",main=tit.main)
         box()
         for(i in 1:max(y2)){

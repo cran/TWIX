@@ -26,7 +26,7 @@ print.id.tree <- function(x,sq=1:5,...){
 }
 
 print.TWIX <- function(x,...){
-    print(names(x)[c(2,3,5:7)])
+    print(names(x)[c(2:3,5:6,9)])
     invisible(x)
 }
 

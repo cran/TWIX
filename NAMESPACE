@@ -1,9 +1,7 @@
-import(rpart)
 
-
-export(TWIX,bagg, Devplot, export, get.splitvar,
-	get.tree, scree.plot, splitt,
-	splitt_padj, trace.plot, tuneTWIX,
+export(TWIX, bagg, Devplot, export, get.splitvar,
+	get.tree, scree.plot, splitt, splitt.padj,
+	trace.plot, tune.TWIX, tune.rpart, tune.RF,
 	fullrks, bootTWIX)
 
 
@@ -15,6 +13,7 @@ S3method(bagg, bootTWIX)
 S3method(bagg, TWIX)
 S3method(predict, TWIX)
 S3method(predict, bootTWIX)
+S3method(predict, bundlTWIX)
 S3method(bagg, TWIX)
 S3method(print, TWIX)
 S3method(print, bootTWIX)

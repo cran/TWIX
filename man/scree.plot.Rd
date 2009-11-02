@@ -27,4 +27,4 @@ scree.plot(formula, data = NULL, bars = TRUE, col = "grey",
     scree.plot(Region~.,data=olives,bars=FALSE,col=2)
     scree.plot(Region~.,data=olives,bars=TRUE)
 }
-\keyword{tree}
+\keyword{hplot}

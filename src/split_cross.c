@@ -21,16 +21,22 @@ static double clogn(double x)
 		return(x*log(x));
 }
 
-SEXP split_cross(  SEXP sv,SEXP rsp,SEXP NN, SEXP svrks,
-			SEXP s,SEXP K)
+// compute k-fold deviance
+//
+// sv - a numeric vector
+// rsp - a integer vector
+// NN - a integer vector
+// svrks - a integer vetor - sort id's of sv
+// s - xgroup id's
+// K - a integer - xval 
+
+
+
+SEXP split_cross( SEXP sv, SEXP rsp, SEXP NN, SEXP svrks,
+			SEXP s, SEXP K, SEXP minbuck)
 {
-	SEXP result_out,globD;
-	SEXP result,in_rsp,in_sv,i_sv, which, tcls, cls;
-	SEXP which2, dev2, seq;
-
 	static double *baseD,*baseW;
-
-	int start=0;
+	int minbuk = INTEGER(minbuck)[0] - 1;
 	int llen_sv=LENGTH(sv);
 	int *ss=INTEGER(s);
 	int *xobs=INTEGER(NN);
@@ -38,12 +44,10 @@ SEXP split_cross(  SEXP sv,SEXP rsp,SEXP NN, SEXP svrks,
 	double maxD=0.0,GD=0.0;
 	double D = 0.0;
 	int k=0,lang=0;
-	int i=0,y=0,l=0,xx;
-
-	PROTECT(result_out = allocVector(VECSXP,4));
+	int i=0,y=0,l=0,xx=0;
 
 	for( y=0; y < xval; y++ ) {
-	int i_in[xobs[y]];
+		int i_in[xobs[y]];
 		if( xval > 1 ){
 			for(l=0; l < LENGTH(s); l++){
 				if(ss[l] != y+1)
@@ -53,9 +57,9 @@ SEXP split_cross(  SEXP sv,SEXP rsp,SEXP NN, SEXP svrks,
 			for(l=0; l < llen_sv; l++){
 				i_in[k++]=l; }
 		}
-		PROTECT(in_rsp = allocVector(INTSXP,xobs[y]));
-		PROTECT(in_sv = allocVector(REALSXP,xobs[y]));
-		PROTECT(i_sv = allocVector(REALSXP,xobs[y]));
+		SEXP in_rsp = PROTECT(allocVector(INTSXP,xobs[y]));
+		SEXP in_sv = PROTECT(allocVector(REALSXP,xobs[y]));
+		SEXP i_sv = PROTECT(allocVector(REALSXP,xobs[y]));
 
 		for(l=0; l < xobs[y] ;l++){
 			INTEGER(in_rsp)[l]=INTEGER(rsp)[i_in[l]];
@@ -70,71 +74,83 @@ SEXP split_cross(  SEXP sv,SEXP rsp,SEXP NN, SEXP svrks,
  		int *v_svrks=i_in;
  		int len_svrks=LENGTH(in_sv);
 		xx=cmax(INTEGER(in_rsp),LENGTH(in_rsp));
-
-		PROTECT(tcls = allocVector(INTSXP,xx));
-		PROTECT(cls = allocVector(INTSXP,xx));
-		PROTECT(result = allocVector(REALSXP,LENGTH(i_sv)));
-		PROTECT(which = allocVector(REALSXP,LENGTH(i_sv)));
+	
+		int *tcls = Calloc(xx,int);
+		int *cls = Calloc(xx,int);
+		double *result = Calloc(len_svrks,double);
+		double *which = Calloc(len_svrks,double);
 
  		for(i=0;i < xx;i++){
- 			INTEGER(tcls)[i]=0;
-			INTEGER(cls)[i]=0;
+ 			tcls[i]=0;
+			cls[i]=0;
 			}
 		for(i=0;i < len_svrks;i++){
- 			REAL(result)[i]=0.0;
-			REAL(which)[i]=0.0;
-			INTEGER(tcls)[v_rsp[i]-1]+=1;
+ 			result[i]=0.0;
+			which[i]=0.0;
+			tcls[v_rsp[i]-1]+=1;
 			}
  		D = clogn(LENGTH(i_sv));
-		i =0;
-		double lv=0.0, maxDP=0.0, cd =0.0,TD=0.0;
-		int isOpt = 0,eq = 0,lct=0;
+		i = 0;
+		double lv=0.0, maxDP=0.0, cd=0.0, TD=0.0;
+		int isOpt = 0, eq = 0, lct=0;
 
 		while(i < len_svrks){
 			lv = v_sv[v_svrks[i]];
-			if(isOpt) REAL(which)[eq-1] = (lv+maxDP)/2;
+			if(isOpt) which[eq-1] = (lv+maxDP)/2;
 			while(i < len_svrks && lv == v_sv[v_svrks[i]]) {
-				if(INTEGER(cls)[v_rsp[v_svrks[i]]-1]== 0) {
-					INTEGER(cls)[v_rsp[v_svrks[i]]-1]=1;
+				if(cls[v_rsp[v_svrks[i]]-1]== 0) {
+					cls[v_rsp[v_svrks[i]]-1]=1;
 				} else {
-					INTEGER(cls)[v_rsp[v_svrks[i]]-1]+=1;
+					cls[v_rsp[v_svrks[i]]-1]+=1;
 					}
 				i++;
 				lct++;
 			}
 			cd = D-clogn(lct)-clogn(len_svrks -lct);
 			int j=0;
-			while(j < LENGTH(cls)) {
-				cd+=-clogn(INTEGER(tcls)[j])+clogn(INTEGER(cls)[j])+
-					clogn(INTEGER(tcls)[j]-INTEGER(cls)[j]);
+			while(j < xx) {
+				cd+=-clogn(tcls[j])+clogn(cls[j])+clogn(tcls[j]-cls[j]);
 				j++;
 	        }
-			isOpt =(cd != maxD);
+			isOpt = (cd != maxD) && (i+1 > minbuk) && (i+1 <= len_svrks-minbuk);
 			if (isOpt){
 				maxD=cd;
-				REAL(result)[eq]=cd;
+				result[eq]=cd;
 				maxDP=lv;
 				eq++;
 			}
 		}
-		lang=lang+(eq-1);
-		UNPROTECT(5);
-
+		UNPROTECT(3);
 		double LL_rsp=LENGTH(in_rsp);
-		for(i=0;i < xx;i++) {
-			TD -= clogn(INTEGER(cls)[i]/LL_rsp)*LL_rsp;
-			}
-		baseD= (double*)Realloc( baseD, (lang+3), double);
-		baseW= (double*)Realloc( baseW, (lang+3), double);
-		int j;
-		for (j=0; j < eq-1; j++) {
-			baseD[start++]=REAL(result)[j];
-			baseW[start-1]=REAL(which)[j];
-			}
-		GD+=TD;
-   		UNPROTECT(2);
+		for(i=0;i < xx; i++) {
+			TD -= clogn(cls[i]/LL_rsp)*LL_rsp;
+		}
+		if(eq > 0){
+			baseD = (double*)Realloc( baseD, (lang+eq), double);
+			baseW = (double*)Realloc( baseW, (lang+eq), double);
+			int j;
+			for (j=0; j < eq; j++) {
+				baseD[lang+j]=result[j];
+				baseW[lang+j]=which[j];
+				}
+			lang=lang+eq;
+			GD+=TD;
+		}
+		Free(tcls); Free(cls); Free(result); Free(which);
   	}
-
+	if(lang < 1 || GD == 0.0){
+		SEXP ans = PROTECT(allocVector(REALSXP,1));
+		SEXP ans2 = PROTECT(allocVector(REALSXP,1));
+		REAL(ans)[0] = 0.0;
+		SEXP result_out = PROTECT(allocVector(VECSXP,4));
+		SET_VECTOR_ELT(result_out, 0, ans);
+		SET_VECTOR_ELT(result_out, 1, ans);
+		REAL(ans2)[0] = 1.0;
+		SET_VECTOR_ELT(result_out, 2, ans2);
+		SET_VECTOR_ELT(result_out, 3, ans);
+		UNPROTECT(3);
+		return(result_out);
+	}
 	int j;
 	double dev[lang],wh[lang];
 	int seq1[lang],ind[lang];
@@ -156,16 +172,18 @@ SEXP split_cross(  SEXP sv,SEXP rsp,SEXP NN, SEXP svrks,
     	i+= seq1[k++];
     }
 
-	PROTECT(which2 = allocVector(REALSXP,k));
-	PROTECT(dev2 = allocVector(REALSXP,k));
-	PROTECT(seq = allocVector(INTSXP,k));
-	PROTECT(globD = allocVector(REALSXP,1));
+	SEXP which2 = PROTECT(allocVector(REALSXP,k));
+	SEXP dev2 = PROTECT(allocVector(REALSXP,k));
+	SEXP seq = PROTECT(allocVector(INTSXP,k));
+	SEXP globD = PROTECT(allocVector(REALSXP,1));
 	for(i=0;i<k;i++){
 		REAL(which2)[i]=wh[i];
 		REAL(dev2)[i]=dev[i]/seq1[i];
 		INTEGER(seq)[i]=seq1[i];
 		}
 	REAL(globD)[0]=GD/xval;
+	
+	SEXP result_out = PROTECT(allocVector(VECSXP,4));
 	SET_VECTOR_ELT(result_out, 0, dev2);
 	SET_VECTOR_ELT(result_out, 1, which2);
 	SET_VECTOR_ELT(result_out, 2, seq);

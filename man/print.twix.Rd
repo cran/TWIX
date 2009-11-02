@@ -19,4 +19,4 @@ An object of class \code{TWIX} or \code{bootTWIX} is printed.
 \seealso{                                              
   \code{\link{TWIX}}, \code{\link{print.single.tree}}   
 }                                                      
-\keyword{tree}
+\keyword{print}

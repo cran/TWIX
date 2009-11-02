@@ -6,7 +6,7 @@
 }
 \usage{
 Devplot(rsp, x, col=1, classes=FALSE, 
-	pch=16, nsample=0, ...)
+        pch=16, nsample=0, ...)
 }
 \arguments{
 \item{rsp}{response variable.}
@@ -33,4 +33,4 @@ Devplot(rsp, x, col=1, classes=FALSE,
     ### for more as one predictor variable
     Devplot(olives$Region,olives[,1:8])
 }
-\keyword{tree}
+\keyword{hplot} \keyword{tree}

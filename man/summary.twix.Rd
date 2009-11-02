@@ -16,4 +16,4 @@
 \seealso{                                                  
   \code{\link{TWIX}}
 }
-\keyword{tree}
+\keyword{utilities}

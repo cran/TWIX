@@ -4,7 +4,7 @@ get.splitvar <- function(x,sq=1:length(x$trees),parm="Splitvar") {
         ID<-vector()
         if(class(m.tr)[1] == "TWIX" )
             m.tree <- m.tr$multitree
-        else if (class(m.tr) == "bootTWIX")
+        else if (class(m.tr)[1] == "bootTWIX")
             m.tree <- m.tr$multitree[[n]]
         if( is.null(id))
             tree.id <- m.tr$trees[[n]]$id

@@ -26,4 +26,4 @@ Urbanek Simon (2002). KLIMT - A COSADA Software Project.\cr
     ###
     #export(Tree,c(1,3))
 }
-\keyword{tree}
+\keyword{tree} \keyword{utilities}

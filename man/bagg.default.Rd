@@ -9,7 +9,7 @@
 }
 \usage{
 \method{bagg}{default}(object,newdata=NULL,sq=1:length(object$trees),
-		aggregation="weighted",\dots)
+     aggregation="weighted",\dots)
 \method{bagg}{TWIX}(object,\dots)
 \method{bagg}{bootTWIX}(object,\dots)
 }
@@ -44,13 +44,14 @@
     test <- SAheart[icv,]
 
     ### TWIX Ensemble
-    M1 <- TWIX(chd~.,data=train,topN=c(4,3),topn.method="single")
+    M1 <- TWIX(chd~.,data=train,topN=c(9,5),topn.method="single")
 
     ### Bagging with greedy decision trees as base classifier
-    M2 <- bootTWIX(chd~.,data=train,nbagg=30)
+    M2 <- bootTWIX(chd~.,data=train,nbagg=50)
 
-    ### Bagging with the p-value adjusted classification trees as base classifier
-    M3 <- bootTWIX(chd~.,data=train,nbagg=30,splitf="p-adj",Devmin=0.01)
+    ### Bagging with the p-value adjusted classification trees
+    ### as base classifier
+    M3 <- bootTWIX(chd~.,data=train,nbagg=50,splitf="p-adj",Devmin=0.01)
 
     preda <- bagg(M1,test,sq=1:length(M1$trees),aggregation="majority")
     predb <- bagg(M1,test,sq=1:length(M1$trees),aggregation="weighted")

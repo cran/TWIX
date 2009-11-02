@@ -12,7 +12,5 @@ fullrks(m)
 }
 \examples{
     fullrks(c(3,1,2,4,5))
-    a <- as.factor(c("yes","yes","no","no"))
-    fullrks(a)
 }
-\keyword{tree}
+\keyword{utilities}

@@ -1,6 +1,7 @@
 \name{predict.TWIX}
 \alias{predict.TWIX}
 \alias{predict.bootTWIX}
+\alias{predict.bundlTWIX}
 \title{
   Predictions from a TWIX object
 }

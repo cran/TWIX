@@ -24,4 +24,4 @@ The value of the deviance extracted from the object \code{object}.
     Tree <- TWIX(Region~.,data=olives,topN=c(5,3),method="local")  
     deviance(Tree)
 }
-\keyword{tree}
+\keyword{tree} \keyword{utilities}

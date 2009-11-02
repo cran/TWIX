@@ -1,10 +1,10 @@
-\name{splitt_padj}
-\alias{splitt_padj}
+\name{splitt.padj}
+\alias{splitt.padj}
 \title{Internal function of TWIX.}
 \description{
 This function compute the split-point and the corresponding p-value.}
 \usage{
-splitt_padj(sv, rsp, minprop=0.1, maxprop=0.9, test=FALSE)
+splitt.padj(sv, rsp, minprop=0.1, maxprop=0.9, test=FALSE)
 }
 \arguments{                                                                           
 \item{sv}{a numeric vector of predicted variable.}

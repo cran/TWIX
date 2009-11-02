@@ -9,14 +9,13 @@
                     TWIX  or bootTWIX function(s).}
 \usage{
 \method{plot}{TWIX}(x, sq = 1:length(x$trees), type = "deviance",
-		i.plot = FALSE, size = 3, freq = TRUE,
-		breaks = "Sturges", pch = par("pch"), ...)
+             size = 3, freq = TRUE, breaks = "Sturges",
+             pch = par("pch"), ...)
 }
 \arguments{
   \item{x}{an object of class \code{TWIX}.}
   \item{sq}{Integer vector giving the number of trees to be plotted.}
   \item{type}{one of \code{"deviance"}, \code{"ccr"},\code{"d&c"}.}
-  \item{i.plot}{logical. If \code{TRUE}, iplot will be used (library iplot will be required).}
   \item{size}{value for largest circle (\code{cex}).}
   \item{freq}{logical. Should the frequence or density be plotted.}
   \item{breaks}{see histogram.}
@@ -45,10 +44,10 @@
     test <- olives[i,]
 
     TM1 <- TWIX(Region~.,data=training[,1:9],test.data=test,
-		topN=c(5,3),method="local")
+                topN=c(5,3),method="local")
     plot(TM1)
     plot(TM1,type="ccr")
     plot(TM1,type="d&c")
 
 }
-\keyword{tree}
+\keyword{hplot} \keyword{tree}

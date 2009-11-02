@@ -3,15 +3,7 @@
 #include <R.h>
 #include <Rmath.h>
 
-int d2i_round(double Zahl){
-	return(Zahl<0?Zahl-.5:Zahl+.5);
-}
-
-int d2i_floor(double Zahl, int Stellen)
-{
-	double v[] = {1, 4, 1e2, 1e3, 1e4 };
-	return(floor(Zahl * v[Stellen] + 0.5) / v[Stellen]);
-}
+#include "utils.h"
 
 
 
@@ -34,10 +26,9 @@ SEXP pLausen94(SEXP q, SEXP N, SEXP minprop, SEXP maxprop, SEXP m)
 		UNPROTECT(1);
 	}
 	N_m = LENGTH(m);
-	double *m1, *m2, *T;
-	m1 = Calloc(N_m, double);
-	m2 = Calloc(N_m, double);
-	T = Calloc(N_m-1, double);
+	double *m1 = Calloc(N_m, double);
+	double *m2 = Calloc(N_m, double);
+	double *T = Calloc(N_m-1, double);
 	double *M = REAL(m);
 	if(N_m < 2){
 		m1[0] = M[0];
@@ -71,11 +62,9 @@ double C_pLausen94( SEXP q, double NN, double *M, int N_m)
 {
 	int i;
 	double *Q = REAL(q);
-	
-	double *m1, *m2, *T;
-	m1 = Calloc(N_m, double);
-	m2 = Calloc(N_m, double);
-	T = Calloc(N_m-1, double);
+	double *m1 = Calloc(N_m, double);
+	double *m2 = Calloc(N_m, double);
+	double *T = Calloc(N_m-1, double);
 	if(N_m < 2){
 		m1[0] = M[0];
 		m2[0] = M[0];

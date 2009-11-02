@@ -18,7 +18,7 @@ predict.TWIX <- function(object,newdata,sq=1,ccr=FALSE,type="class", ...) {
 		pred.meth <- 0
 	else if (type == 2)
 		pred.meth <- 1
-    ############## make 'data.frame' numeric 
+    ############## 
     fact <- sapply(Dt, function(x) !is.null(levels(x)))
     char <- sapply(Dt, is.character)
     sDt <- 1:ncol(Dt)
@@ -29,13 +29,13 @@ predict.TWIX <- function(object,newdata,sq=1,ccr=FALSE,type="class", ...) {
         cat.levels <- lapply(Dt[fact], levels)
         for (j in sDt[fact])
             Dt[[j]] <- as.integer(Dt[[j]])
-        attr(Dt, "cat.levels") <- cat.levels
+		attr(Dt, "cat.levels") <- cat.levels
     }
     ##############
     Erg <- vector()
     if (class(object)[1] == "TWIX") { 
-        ldata <- split(Dt,1:nrow(Dt))
-        cat.levels <- attr(Dt,"cat.levels")
+        ldata <- .Call("mysplit",Dt,PACKAGE="TWIX")
+		cat.levels <- attr(Dt,"cat.levels")
 		mtree <- lapply(sq,function(x,y) {get.tree(y,x)},y=object)
 		pred_levels <- object[[5]][[1]][[1]]$Prob
 		Erg <- .Call("pred_TWIX",
@@ -49,12 +49,12 @@ predict.TWIX <- function(object,newdata,sq=1,ccr=FALSE,type="class", ...) {
                     PACKAGE="TWIX")
     }
     if (class(object)[2] == "single.tree") {
-        ldata<-split(Dt,1:nrow(Dt))
-        cat.levels <- attr(Dt,"cat.levels")
+        ldata <- .Call("mysplit",Dt,PACKAGE="TWIX")
+		cat.levels <- attr(Dt,"cat.levels")
         mtree <- list(object[[1]])
 		pred_levels <- object[[1]][[1]][[1]]$Prob
         if( length(mtree[[1]]) == 0){
-            mtree<-get.tree(object,1)
+            mtree <- get.tree(object,1)
             Erg <- matrix(rep(mtree[[6]],nrow(Dt)))
         }
         else{

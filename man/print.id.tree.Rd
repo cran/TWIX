@@ -15,4 +15,4 @@ Internal function of TWIX.
 }
 \seealso{
   \code{\link{TWIX}}}
-\keyword{tree}
+\keyword{print}

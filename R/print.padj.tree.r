@@ -6,15 +6,15 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
         no.split <- TRUE
     }
     else{ 
-        Obs <- x[[1]]$split[[1]]$Obs
+        Obs <- x[[1]]$split$Obs
         }
     pr.baum <- function(baum,i) {
         anf <- n
         node <- paste( n,")",sep = "" )
         abst <- paste( rep(" ",i))
 		if(!no.split){
-			split.var <- baum$split[[1]]$Splitvar
-			split.p <- baum$split[[1]]$Splitp
+			split.var <- baum$split$Splitvar
+			split.p <- baum$split$Splitp
 		}
 		else
 			split.var <- split.p <- NULL
@@ -32,10 +32,10 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                 cat(node,split.v,Obs," ",dev,yval,yprob,")",leaf,"\n")
             }
             else{
-                dev <- format(1-baum$split[[1]]$Dev,4)
-                yprob <- paste(format(as.vector(round(baum$split[[1]]$Prob,4)),
+                dev <- format(1-baum$split$Dev,4)
+                yprob <- paste(format(as.vector(round(baum$split$Prob,4)),
                     nsmall=1),sep="")
-                yval <- paste(baum$split[[1]]$Pred.class,"(")
+                yval <- paste(baum$split$Pred.class,"(")
                 split.v <- "root"
                 cat(node,split.v,Obs," ",dev,yval,yprob,")","\n")
             }
@@ -45,10 +45,10 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                 split.pl<-names(split.p)[split.p == 1]
                 n <<- 2*anf
                 node <- paste( n,")",sep = "" )
-                yval <- paste(baum$left$split[[1]]$Pred.class,"(")
-                Obs <- baum$left$split[[1]]$Obs
-                dev <- format(1-baum$left$split[[1]]$Dev,4)
-                yprob <- paste(format(as.vector(round(baum$left$split[[1]]$Prob,4)),
+                yval <- paste(baum$left$split$Pred.class,"(")
+                Obs <- baum$left$split$Obs
+                dev <- format(1-baum$left$split$Dev,4)
+                yprob <- paste(format(as.vector(round(baum$left$split$Prob,4)),
                     nsmall=1),sep="")
                 cat(abst,node,split.var,"= ")
                 if(length(split.pl)>1)
@@ -61,10 +61,10 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
             else {
                 n <<- 2*anf
                 node <- paste( n,")",sep = "" )
-                yval <- paste(baum$left$split[[1]]$Pred.class,"(")
-                Obs <- baum$left$split[[1]]$Obs
-                dev <- format(1-baum$left$split[[1]]$Dev,4)
-                yprob <- paste(format(as.vector(round(baum$left$split[[1]]$Prob,4)),
+                yval <- paste(baum$left$split$Pred.class,"(")
+                Obs <- baum$left$split$Obs
+                dev <- format(1-baum$left$split$Dev,4)
+                yprob <- paste(format(as.vector(round(baum$left$split$Prob,4)),
                     nsmall=1),sep="")
                 cat(abst,node,split.var,"<",split.p,Obs,dev,yval,yprob,")","\n")
                 pr.baum(baum$left,i<<-i+1)
@@ -106,10 +106,10 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
                 split.pr<-names(split.p)[split.p == 0]
                 n <<- 2*anf+1
                 node <- paste( n,")",sep = "" )
-                yval <- paste(baum$right$split[[1]]$Pred.class,"(")
-                Obs <- baum$right$split[[1]]$Obs
-                dev <- format(1-baum$right$split[[1]]$Dev,4)
-                yprob<-paste(format(as.vector(round(baum$right$split[[1]]$Prob,4)),
+                yval <- paste(baum$right$split$Pred.class,"(")
+                Obs <- baum$right$split$Obs
+                dev <- format(1-baum$right$split$Dev,4)
+                yprob<-paste(format(as.vector(round(baum$right$split$Prob,4)),
                     nsmall=1),sep="")
                 cat(abst,node,split.var,"= ")
                 if(length(split.pr)>1)
@@ -122,10 +122,10 @@ print.padj.tree <- function(x,klimt=FALSE,Data=NULL,file="FromR.tree",...) {
             else{
                 n <<- 2*anf+1
                 node <- paste( n,")",sep = "" )
-                yval <- paste(baum$right$split[[1]]$Pred.class,"(")
-                Obs <- baum$right$split[[1]]$Obs
-                dev <- format(1-baum$right$split[[1]]$Dev,4)
-                yprob<-paste(format(as.vector(round(baum$right$split[[1]]$Prob,4)),
+                yval <- paste(baum$right$split$Pred.class,"(")
+                Obs <- baum$right$split$Obs
+                dev <- format(1-baum$right$split$Dev,4)
+                yprob<-paste(format(as.vector(round(baum$right$split$Prob,4)),
                     nsmall=1),sep="")
                 cat(abst,node,split.var,">=",split.p,Obs,
                     dev,yval,yprob,")","\n")

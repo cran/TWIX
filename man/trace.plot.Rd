@@ -6,7 +6,7 @@
  }
 \usage{
 trace.plot(obj, sq = 1, quality = NULL, 
-		color.palette = topo.colors, alpha = 1) 
+           color.palette = topo.colors, alpha = 1) 
 }
 \arguments{
 \item{obj}{formula of the form \code{y ~ x1 + x2 + \ldots},
@@ -38,4 +38,4 @@ Mira Digital Publishing.
     ### Trace plot of eight classification trees
     trace.plot(Tree1,sq=1:8)
 }
-\keyword{tree}
+\keyword{hplot}

@@ -1,15 +1,17 @@
-TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
-        method="deviance",topn.method="complete",cluster=NULL,
-        minsplit=30,minbucket=round(minsplit/3),Devmin=0.05,
-		splitf="deviance",topN=1,level=30,st=1,cl.level=2,
-		tol=0.15,score=1,k=0,verbose=FALSE,trace.plot=FALSE,...)
+TWIX <- function(formula, data=NULL, test.data=NULL, subset=NULL,
+        method="deviance", topn.method="complete", minsplit=30,
+		minbucket=round(minsplit/3), topN=1, splitf="deviance",
+		Devmin=0.05, tol=0.15, cp=0.01, level=30, st=1, score=1, k=0,
+		cluster=NULL, cl.level=1, multicore=FALSE,
+		trace=TRUE, trace.plot=FALSE, ...)
 {
     call <- match.call()
     m <- match.call(expand=FALSE)
-    m$method <-m$topn.method <- m$cl.level <- m$test.data <- NULL
-    m$cluster <- m$minsplit <- m$minbucket <- NULL
-    m$Devmin <- m$topN <- m$level <- m$st <- m$tol <- m$... <-NULL
-    m$score <- m$k <- m$trace.plot <- m$robust<- m$splitf <-NULL
+    m$method <- m$topn.method <- m$test.data <- NULL
+    m$minsplit <- m$minbucket <- m$trace <- m$cp <- NULL
+    m$Devmin <- m$topN <- m$level <- m$st <- m$tol <- m$... <- NULL
+    m$score <- m$k <- m$trace.plot <- m$robust<- m$splitf <- NULL
+	m$cluster <- m$cl.level <- m$multicore <- NULL
     m[[1]] <- as.name("model.frame.default")
     m <- eval(m, parent.frame())
 	
@@ -19,18 +21,8 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
 		}
     if(splitf == "p-adj")
         Devmin <- 1-Devmin
-    twix.data <- function(Dt){
-		fact <- sapply(Dt, function(x) !is.null(levels(x)))
-		char <- sapply(Dt, is.character)
-		sDt <- 1:ncol(Dt)
-		if(any(fact | char)) {
-			for (j in sDt[char])
-				Dt[,j] <- factor(Dt[[j]])
-		}
-		Dt
-	}
     if(is.null(test.data) || is.data.frame(test.data)){
-        m <- twix.data(m)
+        m <- twix.data(m,splitf)
     }
     else if(is.matrix(test.data)){
         stop("\n   test.data must be a data.frame!\n")
@@ -40,34 +32,46 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
         }
     if(!is.null(test.data)) {
         test.data <- model.frame(formula,test.data)
+		test.data <- twix.data(test.data,splitf)
         ntest <- dim(test.data)[1]
     }
 	else{
         ntest <- 1
 	}
     ntr <- dim(m)[1]
-    rsp <- model.extract(m, "response")
-    robust <- bag <- FALSE
+    rsp <- m[[1]]
+	robust <- FALSE
     j <- i <- 1
     if(!is.null(names(list(...)))){
-        if(names(list(...)) == "bag")
-			bag <- TRUE
 		if(names(list(...)) == "robust")
 			robust <- TRUE
 	}
     if(method=="grid" && topn.method != "single")
         topn.method <- "single"
+	if (method == "deviance")
+		method <- 0
+	else if (method == "local")
+		method <- 1
+	else if (method == "grid")
+		method <- 2
+	else
+		stop("\n   method must be one of deviance, local, grid !! \n")
+	if(!.Internal(inherits(rsp,"factor",FALSE))) {
+		stop("\n   Response must be a factor!! \n")
+	}
+	if(splitf != "p-adj" & splitf != "deviance")
+			stop("\n   'splitf' must be 'deviance' or 'p-adj'! \n")
     if(!is.null(cluster)) {
         clusterSetupRNG(cluster)
         clusterEvalQ(cluster, library(TWIX))
         }
-    sp <- function(rsp,m,test.d=test.data,dmin=Devmin,minSplit=minsplit,
-                minBucket=minbucket,clname=cluster,cllevel=cl.level,topn=topN,topn.meth=topn.method,
-                levelN=level,lev=0,meth=method,lstep=st,tl=tol,K=k,rob=robust,splf=splitf)
+    sp <- function(rsp, m, test.d=test.data, dmin=Devmin, minSplit=minsplit,
+                minBucket=minbucket, clname=cluster, cllevel=cl.level, topn=topN,
+				topn.meth=topn.method, levelN=level,lev=0, meth=method, lstep=st,
+				tl=tol, K=k, rob=robust, splf=splitf,multic=multicore)
     {
     n <- length(m)
     E <- vector("list",3)
-	Sval <-list()
     lev <- lev+1
     if (length(topN) == 1 ) {
         topn <- 1:topN
@@ -79,264 +83,68 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
         else
             topn <- 1
     }
-    if(lev == 2 && meth == "grid") {
-        meth <- "deviance"
-        topn.meth <- "complete"
+    if(lev == 2 && meth == 2) {
+        meth <- 0
+        #topn.meth <- "complete"
         }
-    if(lev > 2 && meth == "local"){
-        meth <- "deviance"
+    if(lev > 2 && meth == 1){
+        meth <- 0
         }
-    k.topn <- round(length(topn)/(n-1))
-    if(k.topn == 0) k.topn <-1
-    if (is.null(clname)) {
-		if(splf=="deviance"){
-			if(robust && lev < 3){
-				imp<-impor(m[,2:n],rsp,runs=10)
-				TTopn<-20
-				S <- lapply(m[2:n],
-                            splitt,
-                            rsp,
-                            meth=meth,
-                            lstep=lstep,
-                            topn=TTopn
-                            ,topn.meth="complete",
-                            test=FALSE,
-                            level=lev,K=K)
-				for(v in 1:length(S)){
-					a<-((S[[v]]$dev/max(S[[v]]$dev)))*imp[[2]][v]*4
-					S[[v]]$dev<-a
-				}
-			}
-			else{
-				if(length(topn) == 1)
-					Ttest <- TRUE
-				else
-					Ttest <- FALSE
-				S <- lapply(m[2:n],
-                            splitt,
-                            rsp,
-                            meth=meth,
-                            lstep=lstep,
-                            topn=if(topn.meth =="single")
-                                    k.topn
-                                else
-                                    length(topn)
-                            ,topn.meth=topn.meth,
-                            test=Ttest,
-                            level=lev,K=K)
-			}
+	n_cut <- n_topn <- length(topn)
+	if(topn.meth == "single"){
+		n_cut <- round(n_topn/(n-1))
+		if(n_cut == 0){
+			n_cut <- 1
 		}
-		if(splf == "p-adj"){
-			S <- lapply(m[2:n],
-				splitt_padj,
-				rsp=as.numeric(rsp))
-		}
-		if(splf != "p-adj" & splf != "deviance")
-			stop("\n   splitf must be deviance or p-adj! \n")
-		if( K != 0 && lev < 3 && nrow(m) > 60) {
-			if (S[[1]]$globD != 0 && length(S) > 0){
-				k <- 0
-				if (topn.meth !="single")  k <- 1
-				S <- .Call("split_sum_cr",S,k,tl,PACKAGE="TWIX")
-				id_Var <- S[[4]]
-				k <- length(S[[1]])
-				if (k != 0){
-					if(k < length(topn))
-						topn<-1:k
-				}
-			}
-			else{
-				S <- list()
+	}	
+	if(splf == "deviance"){
+		if(rob && lev < 3){
+			imp <- impor(m[,2:n],rsp,runs=10)
+			S <- .Call("var_split_dev", m, as.integer(meth), 
+						as.integer(lstep), as.integer(n_cut),
+						as.logical(FALSE), as.numeric(K),
+						as.integer(minBucket), as.integer(lev),
+						PACKAGE="TWIX")
+			for(v in 1:length(S)){
+				a <- ((S[[v]][[1]]/max(S[[v]][[1]])))*imp[[2]][v]*4
+				a[is.na(a)] <- 0
+				S[[v]][[1]] <- a
 			}
 		}
 		else{
-			if (S[[1]]$globD != 0){
-				k <- 0
-				if (topn.meth !="single")  k <- 1
-				S <- .Call("split_sum",S,k,tl,PACKAGE="TWIX")
-				id_Var <- S[[4]]
-				k <- length(S[[1]])
-				if (k != 0){
-					if(k < length(topn))
-               	        topn<-1:k
-				}
-			}
-			else{
-				S <- list()
-			}
-		}
-    }
-	else {
-		if(splf == "deviance"){
-				if(length(topn) == 1)
-					Ttest <- TRUE
-				else
-					Ttest <- FALSE
-			S <- clusterApplyLB(clname,
-                    m[2:n],
-                    splitt,
-                    rsp,
-                    meth=meth,
-                    lstep=lstep,
-                    topn=if(topn.meth =="single")
-                            k.topn
-                        else
-                            length(topn)
-                    ,topn.meth=topn.meth,
-                    test=Ttest,
-                    level=lev,K=K)
-		}
-		if(splf == "p-adj"){
-			S <- clusterApplyLB(clname,
-                    m[2:n],
-                    splitt_padj,
-                    rsp=as.numeric(rsp))
-		}
-		if(splf != "p-adj" & splf != "deviance")
-			stop("\n   splitf must be deviance or p-adj!\n")
-		if( K != 0 && lev < 3 && nrow(m) > 60) {
-			if (S[[1]]$globD != 0){
-				k <- 0
-				if (topn.meth !="single")  k <- 1
-				S <- .Call("split_sum_cr",S,k,tl,PACKAGE="TWIX")
-				id_Var <- S[[4]]
-				k <- length(S[[1]])
-				if (k != 0){
-					if(k < length(topn))
-						topn<-1:k
-				}
-			}
-			else{
-				S <- list()
-			}
-		}
-		else {
-			if (S[[1]]$globD != 0){
-				k <- 0
-				if (topn.meth != "single")  k <- 1
-				S <- .Call("split_sum",S,k,tl,PACKAGE="TWIX")
-				id_Var <- S[[4]]
-				k <- length(S[[1]])
-				if (k != 0){
-					if(k < length(topn))
-                        topn<-1:k
-                }
-            }
-			else{
-				S <- list()
-			}
-        }
-    }
-    splvar <- vector()
-    Lcut <- Ltest <- vector("list",length(topn))
-	Rcut <- Rtest <- vector("list",length(topn))
-	
-	make.node <- function(y,dev=S[[1]][y],gdev=S[[2]],
-            spoint=S[[3]][[id_Var[y]]],var.id=S[[5]][y],
-			id.var=id_Var[y],mindev=dmin,minbucket=minBucket,
-			data=m,newdata=test.d,k=h,LL=lev) {
-        ans <- 0
-        if(length(dev) > 0 && dev > 0 && gdev > 0){
-            if(is.null(dim(spoint))) {
-				Splitp <- spoint[var.id]
-				spvar <- data[[id.var+1]]
-				Splitvar <- attr(data,"names")[id.var+1]
-				ans <- .Call("split_rule",
-					Splitp,
-					as.character(Splitvar),
-                    as.numeric(dev),
-                    as.numeric(gdev),
-                    as.numeric(Splitp),
-                    as.integer(minbucket),
-                    as.numeric(mindev),
-                    as.numeric(spvar),
-                    if(!is.null(newdata[[id.var+1]]))
-                        as.numeric(newdata[[id.var+1]])
-                    else
-                        as.numeric(0.0),
-					as.list(data),
-					as.list(newdata),
-					as.integer(LL),
-                    PACKAGE="TWIX")
-            }
-            else{
-				Splitp <- spoint[var.id,]
-				spvar <- factor(data[[id.var+1]])
-				Splitvar <- attr(data,"names")[id.var+1]
-				attr(Splitp,"names") <- attr(spvar,"levels")
-				ans <- .Call("split_rule",
-					Splitp,
-					as.character(Splitvar),
-                    as.numeric(dev),
-                    as.numeric(gdev),
-                    as.numeric(Splitp),
-                    as.integer(minbucket),
-                    as.numeric(mindev),
-                    as.numeric(spvar),
-                    if(!is.null(newdata)){
-                        as.numeric(factor(newdata[[id.var+1]]))
-                    }else{
-						as.numeric(0.0)}
-					,as.list(data),
-					as.list(newdata),
-					as.integer(LL),
-                    PACKAGE="TWIX")
-            }
-        } 
-		else 
-			ans[[1]] <- 0
-        if(ans[[1]]){
-            splvar[k] <<- id.var+1
-            if(!is.null(newdata)) {
-                Ltest[[k]]<<-ans[[5]][[1]]
-                Rtest[[k]]<<-ans[[5]][[2]]
-            }
-            Sval[[k]] <<- ans[[6]]
-            Lcut[[k]] <<- ans[[4]][[1]]
-            Rcut[[k]] <<- ans[[4]][[2]]
-            h <<- k+1
-            return(TRUE)
-        }
-        else
-            return(FALSE)
-    }
-    h <- 1
-    if(length(S) > 0 && length(S[[1]]) > 0){
-		for (w in topn)  {
-			ans <- make.node(w)
-			if(length(topn) == 1 && topn == 1 && !ans && !rob){
-				w<-w+1
-				if(!is.na(S[[1]][w])){
-					ans<-make.node(w)
-					if (!ans && !is.na(S[[1]][w+1])){
-						w<-w+1
-						ans<-make.node(w)
-						if (!ans && !is.na(S[[1]][w+1])){
-							w<-w+1
-							ans<-make.node(w)
-							if (!ans && !is.na(S[[1]][w+1])){
-								w<-w+1
-								ans<-make.node(w)
-							}
-						}
-					}
-				}
-			}
+			S <- .Call("var_split_dev", m, as.integer(meth), 
+						as.integer(lstep), as.integer(n_cut),
+						as.logical(FALSE), as.numeric(K),
+						as.integer(minBucket), as.integer(lev),
+						PACKAGE="TWIX")
 		}
 	}
-    S <- id_Var <-0
+	else{
+		S <- .Call("var_split_adj", m, as.numeric(0.1), as.numeric(0.9), 
+					as.logical(FALSE), PACKAGE="TWIX")
+	}
+	S <- .Call("split_sum",S,as.numeric(tl),PACKAGE="TWIX")
+	k <- length(S[[1]])
+	if(k < length(topn)){
+		topn <- 1:k
+	}
+	Sval <- Rcut <- Rtest <- Lcut <- Ltest <- list()
+    h_level <- 1
+	erg_node <- .Call("make_node", topn, S, as.integer(minBucket), as.numeric(dmin),
+				m, test.d, as.integer(lev), environment(), PACKAGE="TWIX")
+
     splitnode_par <- function(z,Lcut,Ltest,Sval,dmiN,minSplit,minBucket,top,
-                            meth,topnmeth,levelN,ll,stt,Tol,kfold,splitfun)
+                            meth,topnmeth,levelN,ll,stt,Tol,kfold,splitfun,Rob)
     {
         if(length(Lcut[[z]][[1]]) >= minSplit && levelN > ll )
         {
             sp.slave(Lcut[[z]][[1]],Lcut[[z]],
-                if(!is.null(Ltest[[z]])) Ltest[[z]],
+                if(length(Ltest) >= z && !is.null(Ltest[[z]])) Ltest[[z]],
                 Dmin=dmiN,minsplit=minSplit,
                 minbucket=minBucket,topN=top,
                 method=meth,topn.method=topnmeth,
                 level=levelN,lev=ll,st=stt,tol=Tol,
-                K=kfold,splitf=splitfun)
+                K=kfold,splitf=splitfun,robust=Rob)
         }
         else {
 			yLcut <- Lcut[[z]][[1]]
@@ -359,20 +167,35 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
                 fit.test=fit.test)
         }
     }
-    if(lev >= cllevel && !is.null(clname)) {
-        if (h > 1) {
-            E <-list(split=Sval,
-                left=clusterApplyLB(clname,1:(h-1),
-                    splitnode_par,Lcut,Ltest,Sval=Sval,dmiN=dmin,minSplit=minSplit,
-                    minBucket=minBucket,top=topN,meth=meth,
-                    topnmeth=topn.meth,levelN=levelN,ll=lev,stt=st,Tol=tol,
-                    kfold=K,splitfun=splf),
-                right=clusterApplyLB(clname,1:(h-1),
-                    splitnode_par,Rcut,Rtest,Sval=Sval,dmiN=dmin,minSplit=minSplit,
-                    minBucket=minBucket,top=topN,meth=meth,
-                    topnmeth=topn.meth,levelN=levelN,ll=lev,stt=st,Tol=tol,
-                    kfold=K,splitfun=splf)
-                )
+    if(lev >= cllevel && (!is.null(clname) || multic)) {
+        if (h_level > 1) {
+			if(!multic){
+				E <-list(split=Sval,
+						 left=clusterApplyLB(clname,1:(h_level-1),
+											 splitnode_par,Lcut,Ltest,Sval=Sval,dmiN=dmin,minSplit=minSplit,
+											 minBucket=minBucket,top=topN,meth=meth,
+											 topnmeth=topn.meth,levelN=levelN,ll=lev,stt=st,Tol=tol,
+											 kfold=K,splitfun=splf,rob),
+						 right=clusterApplyLB(clname,1:(h_level-1),
+											  splitnode_par,Rcut,Rtest,Sval=Sval,dmiN=dmin,minSplit=minSplit,
+											  minBucket=minBucket,top=topN,meth=meth,
+											  topnmeth=topn.meth,levelN=levelN,ll=lev,stt=st,Tol=tol,
+											  kfold=K,splitfun=splf,rob)
+						 )
+			}else{
+				E <-list(split=Sval,
+						 left=mclapply(1:(h_level-1),
+									splitnode_par,Lcut,Ltest,Sval=Sval,dmiN=dmin,minSplit=minSplit,
+									minBucket=minBucket,top=topN,meth=meth,
+									topnmeth=topn.meth,levelN=levelN,ll=lev,stt=st,Tol=tol,
+									kfold=K,splitfun=splf,rob),
+						 right=mclapply(1:(h_level-1),
+									splitnode_par,Rcut,Rtest,Sval=Sval,dmiN=dmin,minSplit=minSplit,
+									minBucket=minBucket,top=topN,meth=meth,
+									topnmeth=topn.meth,levelN=levelN,ll=lev,stt=st,Tol=tol,
+									kfold=K,splitfun=splf,rob)
+						 )
+			}
         }
         else {
             ylev <- .Call("tw_table",rsp,PACKAGE="TWIX")
@@ -397,13 +220,14 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
         E
     }
     else {
-        if(h > 1){
+        if(h_level > 1){
             E <- list(split=Sval,
-            left=lapply(1:(h-1), function(z){
+            left=my.lapply(1:(h_level-1), 
+					function(z){
                     if(length(Lcut[[z]][[1]]) >= minSplit && levelN > lev){
                     sp(Lcut[[z]][[1]],
                         Lcut[[z]],
-                        if(length(Ltest) >= z && !is.null(Ltest[[z]])) Ltest[[z]],
+                        if(length(Ltest) >= z && length(Ltest[[z]][[1]]) > 0) Ltest[[z]],
                         dmin=dmin,
                         minSplit=minSplit,
                         minBucket=minBucket,
@@ -416,7 +240,7 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
                         lev=lev,
                         lstep=lstep,
                         tl=tl,
-                        K=K)
+                        K=K,rob=rob)
                     }
 					else{
 						yLcut <- Lcut[[z]][[1]]
@@ -431,7 +255,6 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
 						else{
                             Dev.test <- fit.test <- 0
                         }
-						#rm(list=c("m","test.d"))
                         list(Obs=sum(TB.L),
                             Prob=TB.L/sum(TB.L),
                             Pred.class=Pred.class,
@@ -442,13 +265,13 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
                     }
                 }
             ),
-			right=lapply(1:(h-1),
+			right=my.lapply(1:(h_level-1),
 				function(k) {
 				if(length(Rcut[[k]][[1]]) >= minSplit && levelN > lev )
 				{
                 sp(Rcut[[k]][[1]],
 					Rcut[[k]],
-					if(length(Rtest) >= k && !is.null(Rtest[[k]])) Rtest[[k]],
+					if(length(Rtest) >= k && length(Rtest[[k]][[1]]) > 0) Rtest[[k]],
 					dmin=dmin,
 					minSplit=minSplit,
 					minBucket=minBucket,
@@ -461,7 +284,7 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
 					lev=lev,
 					lstep=lstep,
 					tl=tl,
-					K=K)
+					K=K,rob=rob)
             } 
 			else{
 				yRcut <- Rcut[[k]][[1]]
@@ -497,12 +320,11 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
                 Dev.test <- .Call("Dev_leaf",ytest,PACKAGE="TWIX")
                 id.test <- Pred.class == ytest
                 fit.test <- sum(id.test)
-				rm(list="test.d")
+			#	rm(list=c("test.d","Ltest","Rtest"))
 			}
 			else{
                 Dev.test <- fit.test <- 0
 			}
-            rm(list=c("m"))
             E <- list(Obs=sum(ylev),Prob=ylev/sum(ylev),
                         Pred.class=Pred.class,Dev=Dev,
                         Dev.test=Dev.test,fit.tr=fit.tr,
@@ -512,214 +334,22 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
     E
   }
     K <- sp(rsp,m,test.data)
-    t <- 0
-    b <- function(n,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R){
-        tree <- list()
-        for (i in 1:length(L)) {
-            for (j in 1:length(R)) {
-                if(length(L[[i]]$id) > 1 | length(R[[j]]$id) > 1){
-                    id <- c(n,L[[i]]$id,R[[j]]$id)
-                    Splitvar <- c(Svar,L[[i]]$Splitvar,R[[j]]$Splitvar)
-                    Splitp <- c(Sp[1],L[[i]]$Splitp,R[[j]]$Splitp)
-                    dev <- d+L[[i]]$dev+R[[j]]$dev
-                    fit.tr <- ftr+L[[i]]$fit.tr+R[[j]]$fit.tr
-                    fit.test <- ftest+L[[i]]$fit.test+R[[j]]$fit.test
-                    dev.test<- L[[i]]$dev.test+R[[j]]$dev.test
-                    sd.tr <- c(sdtr,L[[i]]$sd.tr,R[[j]]$sd.tr)
-                    Obs <- c(Obsn,L[[i]]$Obs,R[[j]]$Obs)
-                    dist <- c(dis,L[[i]]$dist,R[[j]]$dist)
-                    ks.t <- c(kst,L[[i]]$ks.t,R[[j]]$ks.t)
-					dD <- c(ddD,L[[i]]$dD,R[[j]]$dD)
-                    tree[[t<-t+1]]<-list(id=id,dev=dev,dev.test=dev.test,
-                        fit.tr=fit.tr,fit.test=fit.test,Splitvar=Splitvar,
-                        Splitp=Splitp,Pred.class=node.cl,sd.tr=sd.tr,
-						Obs=Obs,dist=dist,ks.t=ks.t,dD=dD)
-                }
-                else if(L[[i]]$Pred.class == R[[j]]$Pred.class) {
-                    id<-0
-                    Splitvar<-Svar
-                    Splitp<-Sp[1]
-                    dev<-0
-                    fit.tr<-ftr+L[[i]]$fit.tr+R[[j]]$fit.tr
-                    fit.test<-ftest+L[[i]]$fit.test+R[[j]]$fit.test
-                    dev.test<-d.t
-                    sd.tr <- sdtr
-                    Obs <- L[[i]]$Obs+R[[j]]$Obs
-                    dist <- ks.t<-0
-                    tree[[t<-t+1]]<-list(id=id,dev=dev,dev.test=dev.test,
-                        fit.tr=fit.tr,fit.test=fit.test,Splitvar=Splitvar,
-                        Splitp=Splitp,Pred.class=node.cl,sd.tr=sd.tr,
-						Obs=Obs,dist=dist,ks.t=ks.t,dD=0)
-                }
-                else {
-                    id <- c(n,L[[i]]$id,R[[j]]$id)
-                    Splitvar <- c(Svar,L[[i]]$Splitvar,R[[j]]$Splitvar)
-                    Splitp <- c(Sp[1],L[[i]]$Splitp,R[[j]]$Splitp)
-                    dev <- d+L[[i]]$dev+R[[j]]$dev
-                    fit.tr <- ftr+L[[i]]$fit.tr+R[[j]]$fit.tr
-                    fit.test <- ftest+L[[i]]$fit.test+R[[j]]$fit.test
-                    dev.test<- L[[i]]$dev.test+R[[j]]$dev.test
-                    sd.tr <- c(sdtr,L[[i]]$sd.tr,R[[j]]$sd.tr)
-                    Obs <- c(Obsn,L[[i]]$Obs,R[[j]]$Obs)
-                    dist <- c(dis,L[[i]]$dist,R[[j]]$dist)
-                    ks.t <- c(kst,L[[i]]$ks.t,R[[j]]$ks.t)
-					dD <- c(ddD,L[[i]]$dD,R[[j]]$dD)
-                    tree[[t<-t+1]]<-list(id=id,dev=dev,dev.test=dev.test,
-                        fit.tr=fit.tr,fit.test=fit.test,Splitvar=Splitvar,
-                        Splitp=Splitp,Pred.class=node.cl,sd.tr=sd.tr,
-						Obs=Obs,dist=dist,ks.t=ks.t,dD=dD)
-                }
-            }
-        }
-    tree
-    }
-    s <- function(a) {
-        id <- list()
-        for (k in 1:length(a$split)) {
-            id <- c(id,
-                b(k,a$split[[k]]$Splitvar,a$split[[k]]$Splitp,a$split[[k]]$Dev,
-                        a$split[[k]]$Dev.test,0,0,
-                        a$split[[k]]$Pred.class,
-                        max(a$split[[k]]$Prob),0,a$split[[k]]$dist,
-                        a$split[[k]]$ks.t,
-						a$split[[k]]$dD,
-                    if(length(a$left[[k]]) == 3)
-                        s(a$left[[k]])
-                    else
-                        list(list(id=0,Splitvar=0,Splitp=0,dev=0,
-                        dev.test=a$left[[k]]$Dev.test,
-                        fit.tr=a$left[[k]]$fit.tr,
-                        fit.test=a$left[[k]]$fit.test,
-                        Pred.class=a$left[[k]]$Pred.class,
-                        sd.tr=max(a$left[[k]]$Prob),
-						Obs=a$left[[k]]$Obs,
-						dist=0,ks.t=0,dD=0)),
-                    if(length(a$right[[k]]) == 3)
-                        s(a$right[[k]])
-                    else
-                        list(list(id=0,Splitvar=0,Splitp=0,dev=0,
-                        dev.test=a$right[[k]]$Dev.test,
-                        fit.tr=a$right[[k]]$fit.tr,
-                        fit.test=a$right[[k]]$fit.test,
-                        Pred.class=a$right[[k]]$Pred.class,
-                        sd.tr=max(a$right[[k]]$Prob),
-						Obs=a$right[[k]]$Obs,
-						dist=0,ks.t=0,dD=0))
-                )
-            )
-        }
-    }
-	
-    b_padj <- function(n,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R){
-        tree <- list()
-        for (i in 1:length(L)) {
-            for (j in 1:length(R)) {
-                if(length(L[[i]]$id) > 1 | length(R[[j]]$id) > 1){
-                    id <- c(n,L[[i]]$id,R[[j]]$id)
-                    Splitvar <- c(Svar,L[[i]]$Splitvar,R[[j]]$Splitvar)
-                    Splitp <- c(Sp[1],L[[i]]$Splitp,R[[j]]$Splitp)
-                    dev <- L[[i]]$dev+R[[j]]$dev
-                    fit.tr <- ftr+L[[i]]$fit.tr+R[[j]]$fit.tr
-                    fit.test <- ftest+L[[i]]$fit.test+R[[j]]$fit.test
-                    dev.test<- L[[i]]$dev.test+R[[j]]$dev.test
-                    sd.tr <- c(sdtr,L[[i]]$sd.tr,R[[j]]$sd.tr)
-                    Obs <- c(Obsn,L[[i]]$Obs,R[[j]]$Obs)
-                    dist <- c(dis,L[[i]]$dist,R[[j]]$dist)
-                    ks.t <- c(kst,L[[i]]$ks.t,R[[j]]$ks.t)
-					dD <- c(ddD,L[[i]]$dD,R[[j]]$dD)             
-                    tree[[t<-t+1]]<-list(id=id,dev=dev,dev.test=dev.test,
-                        fit.tr=fit.tr,fit.test=fit.test,Splitvar=Splitvar,
-                        Splitp=Splitp,Pred.class=node.cl,sd.tr=sd.tr,Obs=Obs,dist=dist,ks.t=ks.t,dD=dD)
-                }
-                else if(L[[i]]$Pred.class == R[[j]]$Pred.class) {
-                    id<-0
-                    Splitvar<-Svar
-                    Splitp<-Sp[1]
-                    dev<-d
-                    fit.tr<-ftr+L[[i]]$fit.tr+R[[j]]$fit.tr
-                    fit.test<-ftest+L[[i]]$fit.test+R[[j]]$fit.test
-                    dev.test<-d.t
-                    sd.tr <- sdtr
-                    Obs <- L[[i]]$Obs+R[[j]]$Obs
-                    dist <- ks.t<-0
-                    tree[[t<-t+1]]<-list(id=id,dev=dev,dev.test=dev.test,
-                        fit.tr=fit.tr,fit.test=fit.test,Splitvar=Splitvar,
-                        Splitp=Splitp,Pred.class=node.cl,sd.tr=sd.tr,Obs=Obs,dist=dist,ks.t=ks.t,dD=0)
-                }
-                else {
-                    id <- c(n,L[[i]]$id,R[[j]]$id)
-                    Splitvar <- c(Svar,L[[i]]$Splitvar,R[[j]]$Splitvar)
-                    Splitp <- c(Sp[1],L[[i]]$Splitp,R[[j]]$Splitp)
-                    dev <- L[[i]]$dev+R[[j]]$dev
-                    fit.tr <- ftr+L[[i]]$fit.tr+R[[j]]$fit.tr
-                    fit.test <- ftest+L[[i]]$fit.test+R[[j]]$fit.test
-                    dev.test<- L[[i]]$dev.test+R[[j]]$dev.test
-                    sd.tr <- c(sdtr,L[[i]]$sd.tr,R[[j]]$sd.tr)
-                    Obs <- c(Obsn,L[[i]]$Obs,R[[j]]$Obs)
-                    dist <- c(dis,L[[i]]$dist,R[[j]]$dist)
-                    ks.t <- c(kst,L[[i]]$ks.t,R[[j]]$ks.t)
-					dD <- c(ddD,L[[i]]$dD,R[[j]]$dD)                    
-                    tree[[t<-t+1]]<-list(id=id,dev=dev,dev.test=dev.test,
-                        fit.tr=fit.tr,fit.test=fit.test,Splitvar=Splitvar,
-                        Splitp=Splitp,Pred.class=node.cl,sd.tr=sd.tr,Obs=Obs,dist=dist,ks.t=ks.t,dD=dD)
-                }
-            }
-        }
-    tree
-    }
-
-	s_padj <- function(a) {
-        id <- list()
-        for (k in 1:length(a$split)) {
-            id <- c(id,
-                b_padj(k,a$split[[k]]$Splitvar,a$split[[k]]$Splitp,a$split[[k]]$dist,
-                        a$split[[k]]$Dev.test,0,0,
-                        a$split[[k]]$Pred.class,
-                        max(a$split[[k]]$Prob),0,a$split[[k]]$dist,
-                        a$split[[k]]$ks.t,
-						a$split[[k]]$dD,
-                    if(length(a$left[[k]]) == 3)
-                        s_padj(a$left[[k]])
-                    else
-                        list(list(id=0,Splitvar=0,Splitp=0,dev=a$left[[k]]$Dev,
-                        dev.test=a$left[[k]]$Dev.test,
-                        fit.tr=a$left[[k]]$fit.tr,
-                        fit.test=a$left[[k]]$fit.test,
-                        Pred.class=a$left[[k]]$Pred.class,
-                        sd.tr=max(a$left[[k]]$Prob),
-						Obs=a$left[[k]]$Obs,
-						dist=0,ks.t=0,dD=0)),
-                    if(length(a$right[[k]]) == 3)
-                        s_padj(a$right[[k]])
-                    else
-                        list(list(id=0,Splitvar=0,Splitp=0,dev=a$right[[k]]$Dev,
-                        dev.test=a$right[[k]]$Dev.test,
-                        fit.tr=a$right[[k]]$fit.tr,
-                        fit.test=a$right[[k]]$fit.test,
-                        Pred.class=a$right[[k]]$Pred.class,
-                        sd.tr=max(a$right[[k]]$Prob),
-						Obs=a$right[[k]]$Obs,
-						dist=0,ks.t=0,dD=0))
-                )
-            )
-        }
-    }
-    DF <- id.agr <- agr.id <- 1
+	DF <- id.agr <- agr.id <- 1
     if(!is.null(K$split)){
 		if(splitf != "p-adj"){
-			KK <- s(K)
+			KK <- s(K,K$split[[1]]$Obs-K$split[[1]]$fit.tr,cp)
 		}
 		else{
 			KK <- s_padj(K)
 		}
         id.leng <- sapply(KK,function(x)length(x$id))
-        id.out <- which(id.leng == 1)
+        id.out <- id.leng == 1
         no.score <- FALSE
-        if(length(id.out) > 0 && length(id.out) < length(KK)){
-            KK <- KK[-id.out]
-            id.leng <- id.leng[-id.out]
+        if(sum(id.out) > 0 && sum(id.out) < length(KK)){
+            KK <- KK[!id.out]
+            id.leng <- id.leng[!id.out]
         }
-        if(length(id.out) == length(id.leng)){
+        if(sum(id.out) == length(id.leng)){
             KK <- list(KK[[1]])
             gr <- list(KK[[1]])
             no.score <- TRUE
@@ -741,9 +371,8 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
 		l <- list(dev.test=0, dev=0, id=0)
         K <- c(l,K)
         KK <- gr <- list(K)
-        l <- list()
-        l$split <- list(K)
-        K <- l
+        K <- list(split=list(K))
+		
         no.score <- TRUE
         gr.id <- tw.tic <- gr.tic <- agr.id <- 1
     }
@@ -813,12 +442,13 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
     if(score == 1){
         fit.tr_certaintly <- sapply(KK,function(x) x$fit.tr*(prod(x$sd.tr[x$Obs!=0])))
         gr.tic <- fit.tr_certaintly[1] 
-        klm <- my.sort(fit.tr_certaintly,index.return=TRUE,decreasing=TRUE)$ix
-        tw.tic <- fit.tr_certaintly[klm[1]]
-        KK <- KK[klm]
+        klm <- my.sort(fit.tr_certaintly,index.return=TRUE,decreasing=TRUE)
+        tw.tic <- klm$x[1]
+        KK <- KK[klm$ix]
+		DF <- klm$x
         fit.tr_certaintly <- klm <- 0
     }
-    if(score == 2){
+    if(score == 3){
         fit.tr <- sapply(KK,function(x) x$fit.tr)
         dev.tr <- sapply(KK,function(x) x$dev)
         sd.tr <- lapply(KK,function(x) x$sd.tr[x$Obs != 0])
@@ -866,15 +496,16 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
         KK <- KK[klm]
         fit.tr<-dev.tr<-klm<-a<-b<-d<-0
     }
-    if(score == 3){
-        gr.tic <- KK[[1]]$fit.test
-        if(is.data.frame(test.data)){
+    if(score == 2){
+        if(is.null(test.data)){
+			gr.tic <- KK[[1]]$fit.tr
             KK <- KK[my.sort(sapply(KK,function(x)x$dev),
                 index.return=TRUE,decreasing=TRUE)$ix]
-            KK<-KK[my.sort(sapply(KK,function(x)x$fit.test),
+            KK<-KK[my.sort(sapply(KK,function(x)x$fit.tr),
                 index.return=TRUE,decreasing=TRUE)$ix]
         }
         else {
+			gr.tic <- KK[[1]]$fit.test
             KK <- KK[my.sort(sapply(KK,function(x)x$dev),
                 index.return=TRUE,decreasing=TRUE)$ix]
             KK <- KK[my.sort(sapply(KK,function(x)x$dev.test),
@@ -882,6 +513,7 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
             KK<-KK[my.sort(sapply(KK,function(x)x$fit.test),
                 index.return=TRUE,decreasing=TRUE)$ix]
             }
+		DF <- 1:length(KK)
         id.agr<-1:length(KK)
         tw.tic <- KK[[1]]$fit.test
     }
@@ -892,7 +524,7 @@ TWIX <- function(formula,data=NULL,test.data=NULL,subset=NULL,
 	}
     gr.id <- which(sapply(KK,function(x)x$dev) == gr[[1]]$dev)[1]
     }
-    if(!verbose || !bag) {
+    if(trace) {
         cat("n =",length(KK),"\n")
         cat("Deviance gain and TIC of the best TWIX-tree:","    ",c(KK[[1]]$dev,tw.tic),"\n")
         if(!is.na(gr.id))

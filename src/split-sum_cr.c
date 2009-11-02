@@ -16,43 +16,41 @@ static double dmax(double *X,int n){
 
 
 
-SEXP split_sum_cr( SEXP BASE, SEXP meth, SEXP tol )
+SEXP split_sum_cr( SEXP BASE, SEXP tol )
 {
-    SEXP result_out,Ssum,which,Var_id2,id_Var2;
-    SEXP globD,dev,scor,data,Ssumm,score;
     int i,j,k,l,sums=0;
-    double xx=0;
+    double xx=0.0;
     
     int N = LENGTH(BASE);
-    int ns[N];
-    /*PROTECT(ns = allocVector(INTSXP,N));*/
-    PROTECT(globD = allocVector(REALSXP,1));
+    int *ns = Calloc(N, int);
     
-    for(i=0;i < N; i++){
-        data = VECTOR_ELT(BASE,i);
-        ns[i]=LENGTH(VECTOR_ELT(data,0));
+    for(i=0; i < N; i++){
+        ns[i]=LENGTH(VECTOR_ELT(VECTOR_ELT(BASE,i),0));
         sums+=ns[i];
     }
-    
-    Ssumm = allocVector(REALSXP,sums);
-    PROTECT(score = allocVector(REALSXP,sums));
-    int Var_id[sums],id_Var[sums],i_in[sums];
-    
+
+	double *Ssumm = Calloc(sums, double);
+	double *score = Calloc(sums, double);	
+	int *Var_id = Calloc(sums, int);
+	int *id_Var = Calloc(sums, int);
+	int *i_in = Calloc(sums, int);
+	    
     k=0;
     for(j=0; j < N; j++){
-        dev = VECTOR_ELT(VECTOR_ELT(BASE,j),0);
-        scor = coerceVector(VECTOR_ELT(VECTOR_ELT(BASE,j),3),REALSXP);
+        SEXP scor = PROTECT(coerceVector(VECTOR_ELT(VECTOR_ELT(BASE,j),3),REALSXP));
         for(i=0; i < ns[j]; i++){
-            REAL(Ssumm)[k]= REAL(dev)[i];
-            REAL(score)[k]=REAL(scor)[i];
+            Ssumm[k]= REAL(VECTOR_ELT(VECTOR_ELT(BASE,j),0))[i];
+            score[k]=REAL(scor)[i];
             i_in[k]=k;
             k++;
         }
+		UNPROTECT(1);
     }
+
+	SEXP globD = PROTECT(allocVector(REALSXP,1));
     double v=0.0,glob=0.0;
     for(j=0; j < N; j++){
-        globD =VECTOR_ELT(VECTOR_ELT(BASE,j),1);
-        glob+=REAL(globD)[0];
+        glob += REAL(VECTOR_ELT(VECTOR_ELT(BASE,j),1))[0];
         v++;
     }
     REAL(globD)[0]=glob/v;
@@ -66,62 +64,46 @@ SEXP split_sum_cr( SEXP BASE, SEXP meth, SEXP tol )
             }
         }
     }
-    xx = dmax(REAL(Ssumm),k);
-    if(1){
-        l=0;
-        for(i=0; i < k; i++){
-            if(REAL(Ssumm)[i] > xx*REAL(tol)[0]){
-                Var_id[l]=Var_id[i];
-                id_Var[l]=id_Var[i];
-                REAL(score)[l]=REAL(score)[i];
-                REAL(Ssumm)[l]=REAL(Ssumm)[i];
-                REAL(score)[l]=2.0*(REAL(Ssumm)[l]/xx)+REAL(score)[i]/dmax(REAL(score),k);
-                l++;
-                }
-            }
-        k=l;
-        int i_in2[k];
-        for(i=0; i < k; i++){
-            i_in2[i]=i;
-            }
-        rsort_with_index(REAL(score),i_in2,k);
-        PROTECT(Ssum = allocVector(REALSXP,k));
-        PROTECT(Var_id2 = allocVector(INTSXP,k));
-        PROTECT(id_Var2 = allocVector(INTSXP,k));
-        l=0;
-        for(i=k-1; i >= 0; i--){
-            INTEGER(Var_id2)[l]=Var_id[i_in2[i]];
-            INTEGER(id_Var2)[l]=id_Var[i_in2[i]];
-            REAL(Ssum)[l]=REAL(Ssumm)[i_in2[i]];
-            l++;
-        }
-    }
-    else{
-        for(i=0; i < k; i++){
-            REAL(score)[i]=2.0*(REAL(Ssumm)[i]/xx)+REAL(score)[i]/dmax(REAL(score),k);
-        }
-        rsort_with_index(REAL(score),i_in,k);
-        PROTECT(Ssum = allocVector(REALSXP,k));
-        PROTECT(Var_id2 = allocVector(INTSXP,k));
-        PROTECT(id_Var2 = allocVector(INTSXP,k));
-        l=0;
-        for(i=k-1; i >= 0; i--){
-            INTEGER(Var_id2)[l]=Var_id[i_in[i]];
-            INTEGER(id_Var2)[l]=id_Var[i_in[i]];
-            REAL(Ssum)[l]=REAL(Ssumm)[i_in[i]];
-            l++;
-        }
-    }
-    PROTECT(which = allocVector(VECSXP,N));
+	l=0;
+    xx = dmax(Ssumm,k);
+	for(i=0; i < k; i++){
+		if(Ssumm[i] >= xx*REAL(tol)[0]){
+			Var_id[l]=Var_id[i];
+			id_Var[l]=id_Var[i];
+			score[l]=score[i];
+			Ssumm[l]=Ssumm[i];
+			score[l]=2.0*(Ssumm[l]/xx)+score[i]/dmax(score,k);
+			l++;
+			}
+		}
+	k=l;
+	int *i_in2 = Calloc(k, int);
+	for(i=0; i < k; i++){
+		i_in2[i]=i;
+	}
+	rsort_with_index(score,i_in2,k);
+	SEXP Ssum = PROTECT(allocVector(REALSXP,k));
+	SEXP Var_id2 = PROTECT(allocVector(INTSXP,k));
+	SEXP id_Var2 = PROTECT(allocVector(INTSXP,k));
+	l=0;
+	for(i=k-1; i >= 0; i--){
+		INTEGER(Var_id2)[l]=Var_id[i_in2[i]];
+		INTEGER(id_Var2)[l]=id_Var[i_in2[i]];
+		REAL(Ssum)[l]=Ssumm[i_in2[i]];
+		l++;
+	}
+	SEXP which = PROTECT(allocVector(VECSXP,N));
     for(i=0; i < N; i++){
         SET_VECTOR_ELT(which, i, VECTOR_ELT(VECTOR_ELT(BASE,i),2));
     }
-    PROTECT(result_out = allocVector(VECSXP,5));
+	Free(Var_id); Free(id_Var); Free(Ssumm); Free(ns);
+	Free(i_in); Free(i_in2);
+    SEXP result_out = PROTECT(allocVector(VECSXP,5));
     SET_VECTOR_ELT(result_out, 0, Ssum);
     SET_VECTOR_ELT(result_out, 1, globD);
     SET_VECTOR_ELT(result_out, 2, which);
     SET_VECTOR_ELT(result_out, 3, id_Var2);
     SET_VECTOR_ELT(result_out, 4, Var_id2);
-    UNPROTECT(7);
+    UNPROTECT(6);
     return(result_out);  
 }

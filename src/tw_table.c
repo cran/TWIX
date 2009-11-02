@@ -2,85 +2,74 @@
 #include <R.h>
 #include <Rmath.h>
 
+#include "utils.h"
+
 
 SEXP tw_table(SEXP Data) {
 
-    SEXP count,levels;
     int NN = LENGTH(Data);
     int i,j,k;
 
-	PROTECT(levels = getAttrib(Data, R_LevelsSymbol));
-	int NL = LENGTH(levels);
+	SEXP C_levels = getAttrib(Data, R_LevelsSymbol);
+	int NL = LENGTH(C_levels);
 	if(NN < 1 || NL == 0)
 		return(R_NilValue);
 	
-	PROTECT(count = allocVector(INTSXP,NL));
-
+	SEXP C_count = PROTECT(allocVector(INTSXP,NL));
     for (i=1; i <= NL; i++) {
-        INTEGER(count)[i-1]=0;
+        INTEGER(C_count)[i-1]=0;
         k=0;
         for (j=0; j < NN; j++) {
             if (i == INTEGER(Data)[j]) {
-                INTEGER(count)[i-1]=++k;
+                INTEGER(C_count)[i-1]=++k;
             }
         }
     }
-    SET_NAMES(count,levels);
-    UNPROTECT(2);
-    return(count);
+    SET_NAMES(C_count,C_levels);
+    UNPROTECT(1);
+    return(C_count);
 }
 
 
 SEXP tw_table_prop(SEXP Data) {
 
-    SEXP count,levels;
     int NN = LENGTH(Data);
     int i,j,k;
 
-	PROTECT(levels = getAttrib(Data, R_LevelsSymbol));
-	int NL = LENGTH(levels);
+	SEXP C_levels = getAttrib(Data, R_LevelsSymbol);
+	int NL = LENGTH(C_levels);
 	if(NN < 1 || NL == 0)
 		return(R_NilValue);
 	
-	PROTECT(count = allocVector(REALSXP,NL));
-
+	SEXP C_count = PROTECT(allocVector(REALSXP,NL));
     for (i=1; i <= NL; i++) {
-        REAL(count)[i-1]=0.0;
+        REAL(C_count)[i-1]=0.0;
         k=0.0;
         for (j=0; j < NN; j++) {
             if (i == INTEGER(Data)[j]) {
-                REAL(count)[i-1]=++k;
+                REAL(C_count)[i-1]=++k;
             }
         }
-		REAL(count)[i-1] = REAL(count)[i-1]/NN;
+		REAL(C_count)[i-1] = REAL(C_count)[i-1] / (double) NN;
     }
-    SET_NAMES(count,levels);
-    UNPROTECT(2);
-    return(count);
+    SET_NAMES(C_count,C_levels);
+    UNPROTECT(1);
+    return(C_count);
 }
 
 
 
-
-int nrow(SEXP x) {
-    return(INTEGER(getAttrib(x, R_DimSymbol))[0]);
-}
-
-int ncol(SEXP x) {
-    return(INTEGER(getAttrib(x, R_DimSymbol))[1]);
-}
 
 SEXP my_which(SEXP X, int which)
 {
-    SEXP xx, ans;
-    double s, *r;
-    int i, n, indx;
+    double s;
+    int i;
 
-	PROTECT(xx = coerceVector(X, REALSXP));
+	SEXP xx = PROTECT(coerceVector(X, REALSXP));
 		
-    r = REAL(xx);
-    n = LENGTH(xx);
-    indx = NA_INTEGER;
+    double *r = REAL(xx);
+    int n = LENGTH(xx);
+    int indx = NA_INTEGER;
 
     if(which) { /* which.min */
 		s = R_PosInf;
@@ -98,28 +87,27 @@ SEXP my_which(SEXP X, int which)
     }
 
     i = (indx != NA_INTEGER);
-    PROTECT(ans = allocVector(INTSXP, i ? 1 : 0));
+    SEXP ans = PROTECT(allocVector(INTSXP, i ? 1 : 0));
     if (i) {
-	INTEGER(ans)[0] = indx + 1;
-	if (getAttrib(xx, R_NamesSymbol) != R_NilValue) { /* preserve names */
-	    SEXP ansnam;
-	    PROTECT(ansnam =
-		    ScalarString(STRING_ELT(getAttrib(xx, R_NamesSymbol), indx)));
-	    setAttrib(ans, R_NamesSymbol, ansnam);
-	    UNPROTECT(1);
-	}
+		INTEGER(ans)[0] = indx + 1;
+		if (getAttrib(xx, R_NamesSymbol) != R_NilValue) { /* preserve names */
+			SEXP ansname = PROTECT(ScalarString(STRING_ELT(getAttrib(xx, R_NamesSymbol), indx)));
+			setAttrib(ans, R_NamesSymbol, ansname);
+			UNPROTECT(1);
+		}
     }
     UNPROTECT(2);
     return ans;
 }
 
+
+
 int my_which_raw(SEXP X, int which)
 {
-    SEXP xx;
     double s, *r;
     int i, n, indx;
 
-	PROTECT(xx = coerceVector(X, REALSXP));
+	SEXP xx = PROTECT(coerceVector(X, REALSXP));
 		
     r = REAL(xx);
     n = LENGTH(xx);
@@ -142,6 +130,8 @@ int my_which_raw(SEXP X, int which)
     UNPROTECT(1);
     return(indx);
 }
+
+
 
 int potenz(int x, int y)
 {
