@@ -5,8 +5,8 @@
 This function compute split-points and corresponding deviance gain.}
 \usage{
 splitt(sv, rsp, meth = "deviance", topn = 1, 
-    topn.meth = "complete", lstep = 1,
-    test = FALSE, K = 0, level = 0, minbuck = 0)
+        topn.meth = "complete", lstep = 1,
+        test = FALSE, K = 0, level = 0, minbuck = 1)
 }
 \arguments{                                                                           
 \item{sv}{a numeric vector of predicted variable.}

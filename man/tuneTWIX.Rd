@@ -1,28 +1,42 @@
 \name{tune.TWIX}
 \alias{tune.TWIX}
+\alias{tune.cp.TWIX}
 \alias{tune.rpart}
+\alias{tune.cp.rpart}
 \alias{tune.RF}
 \title{Parameter tuning via K-fold cross-validation.}
 \description{
-This function tunes hyperparameter: minbuck for TWIX or \code{rpart}, mtry for \code{randomForest}.
+This function tunes hyperparameters: minbuck, cp for TWIX or \code{rpart}, mtry for \code{randomForest}.
 }
 \usage{
 tune.TWIX(formula, data = NULL, minbuck = seq(5,20,by=5), 
-          maxdepth=30, Devmin = 0.01, splitf="deviance",
-          method="deviance", topn.method="complete", topN=1,
-          tol=0.15, cp=0.0, xval=10, runs = 10, 
-          trace.plot = TRUE, score=1, predict="best", 
-          cluster=NULL, seed.cluster=1, multicore=FALSE)
+        maxdepth=30, Devmin=0.0, splitf="deviance", 
+        method="deviance", topn.method="single", 
+        topN=1, tol=0.25, cp=0.0, xval=10, runs = 1, 
+        trace.plot=FALSE, score=1, predict="best", 
+        cluster=NULL, seed.cluster=NULL, multicore=FALSE)
+		  
+tune.cp.TWIX(formula, data = NULL, cp=seq(0.01,0.1,length=10),
+        minbuck=1, maxdepth=30, Devmin=0.0, splitf="deviance", 
+        method="deviance", topn.method="single", 
+        topN=1, tol=0, xval=10, runs = 1, trace.plot=FALSE, 
+        score=1, predict="best", cluster=NULL, 
+        seed.cluster=NULL, multicore=FALSE)
+	
+tune.rpart(formula, data = NULL, minbuck=seq(5,20,by=5), 
+        parms=list(split="information"), maxdepth=30, 
+        cp=0.0, xval=10, runs=1, trace.plot=FALSE, 
+        cluster=NULL, seed.cluster=NULL, multicore=FALSE)
 
-tune.rpart(formula, data = NULL, minbuck = seq(5,20,by=5), 
-          parms=list(split="information"), maxdepth=30, cp = 0.0,
-          xval=10, runs = 10, trace.plot = FALSE, cluster=NULL,
-          seed.cluster=1, multicore=FALSE)
+tune.cp.rpart(formula, data = NULL, cp=seq(0,0.3,0.05),
+        minbuck=0, parms=list(split="information"), 
+        maxdepth=30, xval=10, runs=10, trace.plot=FALSE, 
+        cluster=NULL, seed.cluster=NULL, multicore=FALSE)
 
 tune.RF(formula, data = NULL, mtry = 2:(ncol(data)-1), 
-          ntree=500, replace=TRUE, xval=10, runs = 10, 
-          trace.plot = FALSE, cluster=NULL, seed.cluster=1, 
-          multicore=FALSE)
+        ntree=500, replace=TRUE, xval=10, runs = 1, 
+        trace.plot = FALSE, cluster=NULL, seed.cluster=NULL, 
+        multicore=FALSE)
 }
 \arguments{
 \item{formula}{formula of the form \code{y ~ x1 + x2 + \ldots},
@@ -49,7 +63,7 @@ tune.RF(formula, data = NULL, mtry = 2:(ncol(data)-1),
 \item{score}{Specifies the method for model selection. See \code{\link{TWIX}}.}
 \item{predict}{a string that specifies what predicion mehod will be used. Possible values are "best" for a best single-tree prediction and "ensemble" for prediction based on all trees (see \code{\link{bagg}}).}
 \item{cluster}{the name of the snow cluster, if parallel computing will be used}
-\item{seed.cluster}{an integer value used as seed for the RNG.}
+\item{seed.cluster}{an integer to be supplied to set.seed, or NULL not to set reproducible seeds.}
 \item{multicore}{a logical value for parallel execution with package \code{multicore}.}
 \item{parms}{optional parameters for the splitting function. See \code{\link{rpart}}.}
 \item{mtry}{Number of variables randomly sampled as candidates at each split. See \code{randomForest}.}

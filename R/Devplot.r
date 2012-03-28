@@ -43,14 +43,12 @@ Devplot <- function(rsp, x, col=1, classes=FALSE, pch=16, nsample=0, ...)
         }
     N <- ncol(x)
     newY <- function(x,y){
-        lenax<-round(max(x$dev))
-        Ytick<-pretty(x$dev)
-        ntick<-length(Ytick)
-        diftick<-Ytick[ntick]-Ytick[ntick-1]
-        newL<-unclass(y)*(diftick/5)+lenax
-        }
-    par(mfrow = c(j <- ceiling((n - 1)/2), ceiling((n - 1)/j)),
-        mar = c(2.5, 4, 3, 1) + 0.1)
+        lenax <- round(1.1*max(x$dev))
+        Ytick <- pretty(x$dev)
+        ntick <- length(Ytick)
+        diftick <- Ytick[ntick]-Ytick[ntick-1]
+        newL <- unclass(y)*(diftick/5)+lenax
+	}
     if (n == 2) {
         D <- splitt(x[, 2], x[, 1], test = TRUE)
         if(interactiv){
@@ -74,9 +72,9 @@ Devplot <- function(rsp, x, col=1, classes=FALSE, pch=16, nsample=0, ...)
 				lines(out[[i]]$which,out[[i]]$dev,col=col)
         }
         else {
-            newL<-newY(D,x[,1])
-            plot(D$which, D$dev,xlab = "Splitpoints", main = "",
-                ylab =expression(Delta*i(s,t)),type = "s",lwd=1,ylim=c(0,max(newL)), ...)
+            newL <- newY(D,x[,1])
+            plot(D$which, D$dev, xlab = "Splitpoints",
+                ylab = expression(Delta*i(s,t)), type = "s", ylim=c(0,max(newL)), col=col, ...)
             if(classes)
                 points(x[,2],newL,col=unclass(x[,1]),pch=pch, ...)
             if(outl){
@@ -86,6 +84,8 @@ Devplot <- function(rsp, x, col=1, classes=FALSE, pch=16, nsample=0, ...)
         }
     }
     else {
+		par(mfrow = c(j <- ceiling((n - 1)/2), ceiling((n - 1)/j)),
+				mar = c(2.5, 4, 3, 1) + 0.1)
         D <- lapply(2:N, function(z, y) {
             splitt(y[, z], y[, 1], test = TRUE)
         }, y = x)

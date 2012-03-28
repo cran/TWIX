@@ -2,7 +2,7 @@
 export(TWIX, bagg, Devplot, export, get.splitvar,
 	get.tree, scree.plot, splitt, splitt.padj,
 	trace.plot, tune.TWIX, tune.rpart, tune.RF,
-	fullrks, bootTWIX)
+	fullrks, bootTWIX, tune.cp.TWIX)
 
 
 

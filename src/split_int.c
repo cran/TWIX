@@ -1,13 +1,10 @@
-#include <Rinternals.h>
-#include <Rdefines.h>
-#include <R.h>
-#include <Rmath.h>
+
 
 #include "utils.h"
 #include "split_cat.h"
 #include "split_boot.h"
 #include "maxstat.h"
-
+#include "split-summary.h"
 
 SEXP split_int( SEXP sv, SEXP rsp, SEXP meth, 
 				SEXP step, SEXP topn, SEXP test, SEXP minbucket)
@@ -32,8 +29,8 @@ SEXP split_int( SEXP sv, SEXP rsp, SEXP meth,
 	rsort_index(svrks,v_svrks,len_svrks);
 	Free(svrks);
 
-	double *v_sv=REAL(sv);
-	int *v_rsp=INTEGER(rsp);
+	double *v_sv = REAL(sv);
+	int *v_rsp = INTEGER(rsp);
 	int xx = cmax(v_rsp,len_svrks);
 	int *tcls = Calloc(xx,int);
 	int *cls = Calloc(xx,int);
@@ -192,7 +189,8 @@ SEXP split_int( SEXP sv, SEXP rsp, SEXP meth,
 
 
 SEXP var_split_dev( const SEXP data, const SEXP meth, const SEXP step, SEXP topn, 
-					const SEXP test, const SEXP K, const SEXP minbucket, const SEXP c_lev )
+					const SEXP test, const SEXP K, const SEXP minbucket,
+				   const SEXP c_lev , const SEXP robust, const SEXP tol )
 {
 	int n, i;
 	n = LENGTH(data);
@@ -217,23 +215,36 @@ SEXP var_split_dev( const SEXP data, const SEXP meth, const SEXP step, SEXP topn
 			UNPROTECT(1);
 		}
 	}
-	UNPROTECT(1);
-	return(ans);
+	if(!LOGICAL(robust)[0]){
+		SEXP ERG = PROTECT(split_summary_dev(ans, tol));
+		UNPROTECT(2);
+		return(ERG);
+	}else{
+		UNPROTECT(1);
+		return(ans);
+	}
 }
 
 
-SEXP var_split_adj( const SEXP data, const SEXP minprop, const SEXP maxprop, const SEXP test )
+SEXP var_split_adj( const SEXP data, const SEXP minprop, const SEXP maxprop,
+				   const SEXP test, const SEXP robust, const SEXP tol, const SEXP minbuck )
 {	
 	int n, i;
 	n = LENGTH(data);
-	
-	SEXP ans = PROTECT(allocVector(VECSXP, n-1));
+	SEXP ans, ERG;
+	PROTECT(ans = allocVector(VECSXP, n-1));
 	for(i = 1; i < n; i++) {
 		SET_VECTOR_ELT(ans, i-1, 
 			maxstat(VECTOR_ELT(data, i), VECTOR_ELT(data, 0), 
-					minprop, maxprop, test));
+					minprop, maxprop, test, minbuck));
 	}
-	UNPROTECT(1);
-	return(ans);
+	if(!LOGICAL(robust)[0]){
+		PROTECT(ERG = split_summary_padj(ans, tol));
+		UNPROTECT(2);
+		return(ERG);
+	}else{
+		UNPROTECT(1);
+		return(ans);
+	}
 }
 

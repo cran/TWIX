@@ -5,8 +5,8 @@
  Deviance plot.
 }
 \usage{
-Devplot(rsp, x, col=1, classes=FALSE, 
-        pch=16, nsample=0, ...)
+Devplot(rsp, x, col = 1, classes = FALSE, 
+        pch = 16, nsample = 0, ...)
 }
 \arguments{
 \item{rsp}{response variable.}

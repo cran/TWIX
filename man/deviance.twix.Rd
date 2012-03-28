@@ -6,7 +6,7 @@
 Returns the deviance of a fitted model object.
 }
 \usage{
-\method{deviance}{TWIX}(object,type="training", ...)}
+\method{deviance}{TWIX}(object, type = "training", ...)}
 \arguments{
 \item{object}{ an object of class \emph{TWIX} or \emph{bootTWIX}
                  for which the deviance is desired.}

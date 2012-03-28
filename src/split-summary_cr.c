@@ -16,7 +16,7 @@ static double dmax(double *X,int n){
 
 
 
-SEXP split_sum_cr( SEXP BASE, SEXP tol )
+SEXP split_summary_cr( SEXP BASE, SEXP tol )
 {
     int i,j,k,l,sums=0;
     double xx=0.0;

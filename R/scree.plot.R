@@ -1,7 +1,7 @@
 scree.plot <-function(formula, data = NULL, bars = TRUE, col = "grey", type = "b", pch = 16, ylim = c(0,1),...)
 {
     call <- match.call()
-    scm <- match.call(expand=FALSE)
+    scm <- match.call(expand.dots = FALSE)
     scm$xval <- scm$runs <- scm$data <- scm$minbuck <- NULL
     scm <- model.frame(formula,data)
     rsp <- model.extract(scm, "response")

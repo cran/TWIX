@@ -6,7 +6,7 @@
  }
 \usage{
 trace.plot(obj, sq = 1, quality = NULL, 
-           color.palette = topo.colors, alpha = 1) 
+        color.palette = topo.colors, alpha = 1) 
 }
 \arguments{
 \item{obj}{formula of the form \code{y ~ x1 + x2 + \ldots},

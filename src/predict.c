@@ -195,12 +195,17 @@ SEXP pred_TWIX( SEXP DATA, SEXP TREE, SEXP XVAR, SEXP cat, SEXP N, SEXP pred_met
 		for(i=0; i < ltree; i++){
 			if(LENGTH(VECTOR_ELT(TREE, i)) < 3){
 				Stree = VECTOR_ELT(VECTOR_ELT(TREE, i),0);
-				SEXP result_tree = PROTECT(allocMatrix(REALSXP,cat_length,NDATA));
-				for(j=0, start=0; j < NDATA; j++, start += cat_length){
+//				SEXP result_tree = PROTECT(allocMatrix(REALSXP,cat_length,NDATA));
+				SEXP result_tree = PROTECT(allocMatrix(REALSXP,NDATA,cat_length));
+//				for(j=0, start=0; j < NDATA; j++, start += cat_length){
+				for(j=0; j < NDATA; j++){
 					tmp_data = PROTECT(coerceVector(VECTOR_ELT(DATA,j),REALSXP));
 					tmp_ans = PROTECT(coerceVector(pred_value(tmp_data,Stree,XVAR,cat,pred_meth),REALSXP));
+//					for(k=0; k < cat_length; k++){
+//						REAL(result_tree)[k+start] = REAL(tmp_ans)[k];
+//					}
 					for(k=0; k < cat_length; k++){
-						REAL(result_tree)[k+start] = REAL(tmp_ans)[k];
+						REAL(result_tree)[j+k*NDATA] = REAL(tmp_ans)[k];
 					}
 					UNPROTECT(2);
 				}
@@ -209,11 +214,20 @@ SEXP pred_TWIX( SEXP DATA, SEXP TREE, SEXP XVAR, SEXP cat, SEXP N, SEXP pred_met
 			}
 			else{
 				Stree = VECTOR_ELT(TREE, i);
-				SEXP result_tree = PROTECT(allocMatrix(REALSXP,cat_length,NDATA));
-				for(j=0, start=0; j < NDATA; j++, start += cat_length){
+//				SEXP result_tree = PROTECT(allocMatrix(REALSXP,cat_length,NDATA));
+				SEXP result_tree = PROTECT(allocMatrix(REALSXP,NDATA,cat_length));
+/*				for(j=0, start=0; j < NDATA; j++, start += cat_length){
 					tmp_ans = PROTECT(coerceVector(getListElementTWIX(Stree, "Prob"),REALSXP));
 					for(k=0; k < cat_length; k++){
 						REAL(result_tree)[k+start] = REAL(tmp_ans)[k];
+					}
+					UNPROTECT(1);
+				}
+*/
+				for(j=0; j < NDATA; j++){
+					tmp_ans = PROTECT(coerceVector(getListElementTWIX(Stree, "Prob"),REALSXP));
+					for(k=0; k < cat_length; k++){
+						REAL(result_tree)[j+k*NDATA] = REAL(tmp_ans)[k];
 					}
 					UNPROTECT(1);
 				}

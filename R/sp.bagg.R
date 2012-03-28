@@ -1,7 +1,7 @@
 
 sp.bagg <- function(rsp,m,test.data=NULL,Devmin=0.01,minsplit=20,
-                minbucket=10L,topN=1,topn.method="complete",
-                level=30, method="deviance",tol=0.15, splitf="deviance", st=1, k=0)
+                minbucket=10,topN=1,topn.method="complete",
+                level=30, method="deviance",tol=0.0, splitf="deviance", st=1, k=0)
 {
 	if (method == "deviance")
 		method <- 0
@@ -11,13 +11,13 @@ sp.bagg <- function(rsp,m,test.data=NULL,Devmin=0.01,minsplit=20,
 		method <- 2
 	else
 		stop("\n   method must be one of deviance, local, grid !! \n")
-	if(!.Internal(inherits(rsp,"factor",FALSE))) {
+	if(!inherits(rsp,"factor",FALSE)) {
 		stop("\n   Response must be a factor!! \n")
 	}
 		
 	sp.twix <- function(rsp,m, test.d=NULL, dmin=Devmin, minSplit=minsplit,
                 minBucket=minbucket, topn=topN, topn.meth=topn.method,
-                levelN=level,meth=method,tl=tol,splf=splitf,lstep=st,K=k,
+                levelN=level, meth=method, tl=tol, splf=splitf, lstep=st, K=k,
 				lev=0)
 	{
     n <- length(m)
@@ -64,14 +64,17 @@ sp.bagg <- function(rsp,m,test.data=NULL,Devmin=0.01,minsplit=20,
 						as.integer(lstep), as.integer(n_cut),
 						as.logical(FALSE), as.numeric(K),
 						as.integer(minBucket), as.integer(lev),
+						as.logical(TRUE),as.numeric(tl),
 						PACKAGE="TWIX")
 		}
+		S <- .Call("split_summary_dev", S, as.numeric(tl), PACKAGE="TWIX")
 	}
 	if(splf == "p-adj"){
 		S <- .Call("var_split_adj", m, as.numeric(0.1), as.numeric(0.9),
-					as.logical(FALSE), PACKAGE="TWIX")
+				   as.logical(FALSE), as.logical(TRUE), as.numeric(tl),
+				   as.integer(minBucket), PACKAGE="TWIX")
+		S <- .Call("split_summary_padj", S, as.numeric(tl), PACKAGE="TWIX")
 	}
-	S <- .Call("split_sum",S,as.numeric(tl),PACKAGE="TWIX")
 	k <- length(S[[1]])
 	if(k < length(topn)){
 		topn <- 1:k
@@ -80,7 +83,6 @@ sp.bagg <- function(rsp,m,test.data=NULL,Devmin=0.01,minsplit=20,
     h_level <- 1
 	erg_node <- .Call("make_node", topn, S, as.integer(minBucket), as.numeric(dmin),
 			m, test.d, as.integer(lev), environment(), PACKAGE="TWIX")
-	
 	S <- 0
 	if (h_level > 1) {
 		E <- list(split=Sval,

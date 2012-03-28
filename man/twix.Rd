@@ -6,10 +6,10 @@
 \description{Trees with extra splits}
 \usage{
 TWIX(formula, data=NULL, test.data=NULL, subset=NULL,
-        method="deviance", topn.method="complete", minsplit=30,
+        method="deviance", topn.method="complete", minsplit=20,
         minbucket=round(minsplit/3), topN=1, splitf="deviance",
-        Devmin=0.05, tol=0.15, cp=0.01, level=30, st=1, score=1,
-        k=0, cluster=NULL, cl.level=1, multicore=FALSE,
+        Devmin=0.01, tol=0.25, cp=0.01, level=30, st=1, score=1,
+        k=0, cluster=NULL, seed.cluster=NULL, cl.level=1, multicore=FALSE,
         trace=TRUE, trace.plot=FALSE, ...)
 }
 \arguments{
@@ -42,6 +42,7 @@ TWIX(formula, data=NULL, test.data=NULL, subset=NULL,
   \item{level}{the maximum depth of the trees. If \code{level} set to 1, trees consist of root node.}
   \item{st}{step parameter for method \code{"grid"}.}
   \item{cluster}{the name of the snow cluster, if parallel computing will be used.}
+  \item{seed.cluster}{an integer to be supplied to set.seed, or NULL not to set reproducible seeds.}
   \item{cl.level}{an internal parameter of parallel computing.}
   \item{multicore}{a logical value for parallel execution with package \code{multicore}.}
   \item{score}{Specifies the method for model selection. This can be \code{1}(default), \code{2}  or \code{3}.\cr

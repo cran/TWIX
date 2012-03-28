@@ -1,6 +1,4 @@
-#include <Rdefines.h>
-#include <R.h>
-#include <Rmath.h>
+
 
 #include "utils.h"
 

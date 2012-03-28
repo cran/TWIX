@@ -9,8 +9,8 @@
                     TWIX  or bootTWIX function(s).}
 \usage{
 \method{plot}{TWIX}(x, sq = 1:length(x$trees), type = "deviance",
-             size = 3, freq = TRUE, breaks = "Sturges",
-             pch = par("pch"), ...)
+        size = 3, freq = TRUE, breaks = "Sturges",
+        pch = par("pch"), ...)
 }
 \arguments{
   \item{x}{an object of class \code{TWIX}.}

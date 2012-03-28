@@ -93,7 +93,7 @@ trace.plot <-function(obj,sq=1,quality=NULL,color.palette=topo.colors,alpha = 1)
         ##
         mar.orig <- (par.orig <- par(c("mar", "las", "mfrow")))$mar
         w<-(3 + mar.orig[2]) * par("csi") * 2.54
-        nf<-layout(matrix(c(2, 1), nc = 2), widths = c(1, lcm(w)))
+        nf<-layout(matrix(c(2, 1), ncol = 2), widths = c(1, lcm(w)))
         #layout.show(nf)
         levels<-pretty(range(as.numeric(trace.tree[,6])), 20)
         col<-color.palette(length(levels)-1)
@@ -129,7 +129,7 @@ trace.plot <-function(obj,sq=1,quality=NULL,color.palette=topo.colors,alpha = 1)
         apply(P.Data,1,function(x) lines(x[1:2],x[3:4],col=x[5],lwd=1.5))
         apply(P.Data[-id.out,],1,function(x) points(x[1],x[3],pch="|",cex=1.05))
         apply(P.Data[-id.out,],1,function(x) points(x[2],x[4],pch="|",cex=1.05))
-        nf<-layout(matrix(c(1, 1), nc = 1))    
+        nf<-layout(matrix(c(1, 1), ncol = 1))    
         par(mar = c(5, 4, 4, 2) + 0.1)
     }
     else{
@@ -152,7 +152,7 @@ trace.plot <-function(obj,sq=1,quality=NULL,color.palette=topo.colors,alpha = 1)
         apply(P.Data,1,function(x) lines(x[1:2],x[3:4],col=x[5],lwd=1.5))
         apply(P.Data[-id.out,],1,function(x) points(x[1],x[3],pch="|",cex=1.05))
         apply(P.Data[-id.out,],1,function(x) points(x[2],x[4],pch="|",cex=1.05))
-        nf<-layout(matrix(c(1, 1), nc = 1))    
+        nf<-layout(matrix(c(1, 1), ncol = 1))    
         par(mar = c(5, 4, 4, 2) + 0.1)
     }
 }

@@ -1,4 +1,4 @@
-b <- function(n,NF,cp,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R){
+b <- function(n,NF,cp,Svar,Sp,d,d.t,ftr,ftest,node.cl,yprob,Obsn,dis,kst,ddD,L,R){
 	t <- 1
 	NR <- length(R)
 	NL <- length(L)
@@ -16,7 +16,7 @@ b <- function(n,NF,cp,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R)
 						Splitvar = c(Svar,L[[i]]$Splitvar,R[[j]]$Splitvar),
 						Splitp = c(Sp[1],L[[i]]$Splitp,R[[j]]$Splitp),
 						Pred.class=node.cl,
-						sd.tr = c(sdtr,L[[i]]$sd.tr,R[[j]]$sd.tr),
+						y.prob = c(yprob,L[[i]]$y.prob,R[[j]]$y.prob),
 						Obs = c(Obsn,L[[i]]$Obs,R[[j]]$Obs),
 						dist = c(dis,L[[i]]$dist,R[[j]]$dist),
 						ks.t = c(kst,L[[i]]$ks.t,R[[j]]$ks.t),
@@ -29,7 +29,7 @@ b <- function(n,NF,cp,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R)
 							fit.tr = ftr+L[[i]]$fit.tr+R[[j]]$fit.tr,
 							fit.test = ftest+L[[i]]$fit.test+R[[j]]$fit.test,
 							Splitvar = Svar, Splitp=Sp[1],
-							Pred.class=node.cl, sd.tr=sdtr,
+							Pred.class=node.cl, y.prob=yprob,
 							Obs = sum(c(L[[i]]$Obs,R[[j]]$Obs)),
 							dist = 0, ks.t = 0, risk=ddD)
 			}
@@ -43,7 +43,7 @@ b <- function(n,NF,cp,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R)
 							Splitvar = c(Svar,L[[i]]$Splitvar,R[[j]]$Splitvar),
 							Splitp = c(Sp[1],L[[i]]$Splitp,R[[j]]$Splitp),
 							Pred.class=node.cl,
-							sd.tr = c(sdtr,L[[i]]$sd.tr,R[[j]]$sd.tr),
+							y.prob = c(yprob,L[[i]]$y.prob,R[[j]]$y.prob),
 							Obs = c(Obsn,L[[i]]$Obs,R[[j]]$Obs),
 							dist = c(dis,L[[i]]$dist,R[[j]]$dist),
 							ks.t = c(kst,L[[i]]$ks.t,R[[j]]$ks.t),
@@ -73,7 +73,7 @@ s <- function(a,NF,cp) {
                         list(list(id=0,Splitvar=0,Splitp=0,dev=0,
                         dev.test=alf$Dev.test,
                         fit.tr=alf$fit.tr, fit.test=alf$fit.test,
-                        Pred.class=alf$Pred.class, sd.tr=max(alf$Prob),
+                        Pred.class=alf$Pred.class, y.prob=max(alf$Prob),
 						Obs=alf$Obs, dist=0, ks.t=0, risk=alf$Obs-alf$fit.tr)),
                     if(length(arf) == 3)
                         s(arf,NF,cp)
@@ -81,7 +81,7 @@ s <- function(a,NF,cp) {
                         list(list(id=0,Splitvar=0,Splitp=0,dev=0,
                         dev.test=arf$Dev.test,
                         fit.tr=arf$fit.tr, fit.test=arf$fit.test,
-                        Pred.class=arf$Pred.class, sd.tr=max(arf$Prob),
+                        Pred.class=arf$Pred.class, y.prob=max(arf$Prob),
 						Obs=arf$Obs, dist=0, ks.t=0, risk=arf$Obs-arf$fit.tr))
                 )
             )
@@ -91,7 +91,7 @@ s <- function(a,NF,cp) {
 
 
 
-b_padj <- function(n,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R){
+b_padj <- function(n,Svar,Sp,d,d.t,ftr,ftest,node.cl,yprob,Obsn,dis,kst,ddD,L,R){
 	t <- 1
 	NR <- length(R)
 	NL <- length(L)
@@ -108,7 +108,7 @@ b_padj <- function(n,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R){
 						Splitvar = c(Svar,L[[i]]$Splitvar,R[[j]]$Splitvar),
 						Splitp = c(Sp[1],L[[i]]$Splitp,R[[j]]$Splitp),
 						Pred.class=node.cl,
-						sd.tr = c(sdtr,L[[i]]$sd.tr,R[[j]]$sd.tr),
+						y.prob = c(yprob,L[[i]]$y.prob,R[[j]]$y.prob),
 						Obs = c(Obsn,L[[i]]$Obs,R[[j]]$Obs),
 						dist = c(dis,L[[i]]$dist,R[[j]]$dist),
 						ks.t = c(kst,L[[i]]$ks.t,R[[j]]$ks.t),
@@ -120,7 +120,7 @@ b_padj <- function(n,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R){
 						fit.tr = ftr+L[[i]]$fit.tr+R[[j]]$fit.tr,
 						fit.test = ftest+L[[i]]$fit.test+R[[j]]$fit.test,
 						Splitvar = Svar, Splitp = Sp[1],
-						Pred.class=node.cl, sd.tr = sdtr,
+						Pred.class=node.cl, y.prob=yprob,
 						Obs = L[[i]]$Obs+R[[j]]$Obs,
 						dist = 0, ks.t = 0, dD = 0)
 			}
@@ -134,7 +134,7 @@ b_padj <- function(n,Svar,Sp,d,d.t,ftr,ftest,node.cl,sdtr,Obsn,dis,kst,ddD,L,R){
 						Splitvar = c(Svar,L[[i]]$Splitvar,R[[j]]$Splitvar),
 						Splitp = c(Sp[1],L[[i]]$Splitp,R[[j]]$Splitp),
 						Pred.class = node.cl,
-						sd.tr = c(sdtr,L[[i]]$sd.tr,R[[j]]$sd.tr),
+						y.prob = c(yprob,L[[i]]$y.prob,R[[j]]$y.prob),
 						Obs = c(Obsn,L[[i]]$Obs,R[[j]]$Obs),
 						dist = c(dis,L[[i]]$dist,R[[j]]$dist),
 						ks.t = c(kst,L[[i]]$ks.t,R[[j]]$ks.t),
@@ -165,7 +165,7 @@ s_padj <- function(a) {
 						dev.test=alf$Dev.test,
 						fit.tr=alf$fit.tr, fit.test=alf$fit.test,
 						Pred.class=alf$Pred.class,
-						sd.tr=max(alf$Prob), Obs=alf$Obs,
+						y.prob=max(alf$Prob), Obs=alf$Obs,
 						dist=0, ks.t=0, dD=0)),
 				if(length(arf) == 3)
 					s_padj(arf)
@@ -174,7 +174,7 @@ s_padj <- function(a) {
 						dev=arf$Dev,
 						dev.test=arf$Dev.test,
 						fit.tr=arf$fit.tr, fit.test=arf$fit.test,
-						Pred.class=arf$Pred.class, sd.tr=max(arf$Prob),
+						Pred.class=arf$Pred.class, y.prob=max(arf$Prob),
 						Obs=arf$Obs, dist=0, ks.t=0, dD=0))
 			)
 		)
@@ -310,3 +310,7 @@ s_bag_padj <- function(a) {
 	}
 	id
 }
+
+
+
+

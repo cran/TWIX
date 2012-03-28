@@ -91,11 +91,14 @@ predict.TWIX <- function(object,newdata,sq=1,ccr=FALSE,type="class", ...) {
 			Erg <- data.frame(Erg)
 		}
 		else{
-			if(is.list(Erg))
-				Erg <- lapply(Erg,function(x,y){rownames(x)<-y;x},y=names(pred_levels))
-			else
-				rownames(Erg)<-names(pred_levels)
-		}	
+			if(is.list(Erg) & length(sq) > 1){
+				Erg <- lapply(Erg,function(x,y){colnames(x) <- y; x},y=names(pred_levels))
+			}else{
+				colnames(Erg[[1]]) <- names(pred_levels)
+				Erg <- Erg[[1]]
+			}
+		}
 	}
     Erg
 }
+

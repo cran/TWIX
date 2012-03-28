@@ -1,25 +1,25 @@
 nlogn <- function(x) { if (x == 0) 0 else x*log(x) }
 
-fullrks<-function(m) {
-	if (!is.factor(m)) .Internal(qsort(m,index.return=TRUE))[[2]] else 0
+fullrks <- function(m) {
+	if (!is.factor(m)) sort(m, method="quick", index.return=TRUE)[[2]] else 0
 }
 
 
 my.sort <- function(x,index.return=FALSE,decreasing=FALSE) {
 	if(decreasing) 
 		x <- -x
-	y <- .Internal(qsort(x,index.return=index.return))
+	y <- sort(x, method="quick", index.return=index.return)
 	if(decreasing) 
 		y$x <- -y$x
 	y
 }
 
 
-my.lapply<-function (X, FUN, ...) 
+my.lapply <- function (X, FUN, ...) 
 {
     FUN <- match.fun(FUN)
 	class(X) <- "list"
-    .Internal(lapply(X, FUN))
+    lapply(X, FUN)
 }
 
 

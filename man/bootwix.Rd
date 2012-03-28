@@ -8,10 +8,10 @@ Bootstrap samples of the Greedy-TWIX-trees or p-value adjusted TWIX-trees.
 }
 \usage{
 bootTWIX(formula, data = NULL, nbagg = 25, topN = 1, subset = NULL, 
-    comb = NULL, method = "deviance", topn.method = "complete", 
-    replace=TRUE, ns=1, minsplit=2, minbucket=round(minsplit/3), 
-    splitf = "deviance", Devmin = 0.05, level = 30, tol = 0.01, 
-    cluster = NULL, seed.cluster = NULL) 
+        comb = NULL, method = "deviance", topn.method = "complete", 
+        replace = TRUE, ns=1, minsplit = 2, minbucket = round(minsplit/3), 
+        splitf = "deviance", Devmin = 0.01, level = 30, tol = 0.01, 
+        cluster = NULL, seed.cluster = NULL) 
 
 }
 
@@ -46,7 +46,7 @@ bootTWIX(formula, data = NULL, nbagg = 25, topN = 1, subset = NULL,
 \item{level}{maximum depth of the trees. If \code{level} set to 1, trees consist of root node.}
 \item{tol}{parameter, which will be used, if \code{topn.method} is set to \code{"single"}.}
 \item{cluster}{the name of the cluster, if parallel computing will be used.}
-\item{seed.cluster}{a integer value used as seed for the RNG.}
+\item{seed.cluster}{an integer to be supplied to set.seed, or NULL not to set reproducible seeds.}
 }
 
 \value{a list with the following components :

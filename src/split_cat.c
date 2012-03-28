@@ -9,7 +9,7 @@
 #include "tw_table.h"
 #include "Devleaf.h"
 
- 
+
 SEXP KR_table(const SEXP Y, const SEXP X) {
 	
 	SEXP X_lev = getAttrib(X, R_LevelsSymbol);

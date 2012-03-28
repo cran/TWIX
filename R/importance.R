@@ -1,4 +1,4 @@
-impor<-function(newdata,y,runs){
+importance <- function(newdata,y,runs){
     xval <- 4
 	if(is.data.frame(newdata))
 		newdata <- data.frame(newdata)

@@ -6,7 +6,7 @@
 }
 \usage{
 scree.plot(formula, data = NULL, bars = TRUE, col = "grey",
-            type = "b", pch = 16, ylim = c(0, 1), ...)
+        type = "b", pch = 16, ylim = c(0, 1), ...)
 }
 \arguments{
 \item{formula}{formula of the form \code{y ~ x1 + x2 + \ldots},

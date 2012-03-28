@@ -1,7 +1,4 @@
-#include <Rinternals.h>
-#include <Rdefines.h>
-#include <R.h>
-#include <Rmath.h>
+
 
 #include "tw_table.h"
 #include "Devleaf.h"
@@ -355,6 +352,7 @@ SEXP split_rule_bag(SEXP spoint, SEXP DEV, SEXP GDEV, SEXP MINBUCK, SEXP MINDEV,
 		UNPROTECT(1);
 		return(ans);
 	}
+
 	if(isMatrix(spoint)){
 	    SEXP Xd = getAttrib(spoint, R_DimSymbol);
 		nr = INTEGER(Xd)[0];
@@ -393,8 +391,6 @@ SEXP split_rule_bag(SEXP spoint, SEXP DEV, SEXP GDEV, SEXP MINBUCK, SEXP MINDEV,
 			REAL(C_TDATA)[0] = 0.0;
 		}
 	}
-//	UNPROTECT(3);
-
     double dev = REAL(DEV)[0];
     int minbuck = INTEGER(MINBUCK)[0];
     double mindev = REAL(MINDEV)[0];
@@ -407,10 +403,10 @@ SEXP split_rule_bag(SEXP spoint, SEXP DEV, SEXP GDEV, SEXP MINBUCK, SEXP MINDEV,
     SEXP C_Ltdata = PROTECT(allocVector(INTSXP,NTD));
     for(i=0; i < ND; i++){
         INTEGER(C_Ldata)[i]=0;
-        }
+	}
     for(i=0; i < NTD; i++){
         INTEGER(C_Ltdata)[i]=0;
-        }
+	}
     if(LENGTH(DEV) > 0) {
         if(NWh == 1) {
             if(fabs(dev - 0.0) > FLT_EPSILON){

@@ -1,10 +1,10 @@
 splitt <- function(sv, rsp, meth="deviance", topn=1, topn.meth="complete",
-                lstep=1, test=FALSE, K=0, level=0, minbuck=0)
+                lstep=1, test=FALSE, K=0, level=0, minbuck=1)
 {
-	if(!.Internal(inherits(rsp,"factor",FALSE))) {
+	if(!inherits(rsp,"factor",FALSE)) {
 		stop("\n   Response must be a factor!! \n")
 	}
-    if(.Internal(inherits(sv,"factor",FALSE))) {
+    if(inherits(sv,"factor",FALSE)) {
 		split_cat <- .Call("split_cat",
 						sv,
 						rsp,
@@ -139,10 +139,10 @@ splitt <- function(sv, rsp, meth="deviance", topn=1, topn.meth="complete",
 splitt_dev <- function(sv, rsp, meth="deviance", topn=1, topn.meth="complete",
                 lstep=1, test=FALSE, K=0, level=0)
 {
-	if(!.Internal(inherits(rsp,"factor",FALSE))) {
+	if(!inherits(rsp,"factor",FALSE)) {
 		stop("\n   Response must be a factor!! \n")
 	}
-    if(.Internal(inherits(sv,"factor",FALSE))) {
+    if(inherits(sv,"factor",FALSE)) {
 		split_cat <- .Call("split_cat",
 						sv,
 						rsp,

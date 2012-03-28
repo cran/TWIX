@@ -1,6 +1,4 @@
-#include <Rdefines.h>
-#include <R.h>
-#include <Rmath.h>
+
 
 #include "utils.h"
 
@@ -85,7 +83,6 @@ SEXP my_which(SEXP X, int which)
 			s = r[i]; indx = i;
 			}
     }
-
     i = (indx != NA_INTEGER);
     SEXP ans = PROTECT(allocVector(INTSXP, i ? 1 : 0));
     if (i) {
@@ -97,7 +94,8 @@ SEXP my_which(SEXP X, int which)
 		}
     }
     UNPROTECT(2);
-    return ans;
+	//Free(r);
+    return(ans);
 }
 
 
@@ -127,6 +125,7 @@ int my_which_raw(SEXP X, int which)
 			s = r[i]; indx = i;
 			}
     }
+	//Free(r);
     UNPROTECT(1);
     return(indx);
 }

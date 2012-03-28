@@ -1,10 +1,10 @@
-bootTWIX<- function(formula, data=NULL, nbagg=25, topN=1, subset=NULL, comb=NULL,
+bootTWIX <- function(formula, data=NULL, nbagg=25, topN=1, subset=NULL, comb=NULL,
                     method="deviance", topn.method="complete", replace = TRUE, ns = 1,
 					minsplit=2, minbucket=round(minsplit/3), splitf="deviance", 
-					Devmin=0.05, level=30, tol=0.01, cluster=NULL, seed.cluster=NULL)
+					Devmin=0.01, level=30, tol=0.01, cluster=NULL, seed.cluster=NULL)
 {
     call <- match.call()
-    m <- match.call(expand=FALSE)
+    m <- match.call(expand.dots = FALSE)
     m$method <- m$topn.method <- m$comb <- NULL
 	m$minsplit <- m$minbucket <- NULL
     m$Devmin <- m$topN <- m$level <- m$tol <-NULL
@@ -22,13 +22,13 @@ bootTWIX<- function(formula, data=NULL, nbagg=25, topN=1, subset=NULL, comb=NULL
 	if(is.null(cluster)){
 		if(is.null(comb)){
 			for(j in 1:nbagg){
-				if(nbagg > 1)
+				if(nbagg >= 1)
 					bag.ind <- sample(1:nrow(m), nrow(m)*ns, replace)
 				else
 					bag.ind <- 1:nrow(m)
 				BGdata <- m[bag.ind,]
 				BG[[j]] <- sp.bagg(BGdata[[1]], BGdata, test.data, Devmin,
-						minsplit, minbucket, topN,topn.method, level, 
+						minsplit, minbucket, topN, topn.method, level, 
 						method, tol, splitf)
 			}
 		}
@@ -80,10 +80,10 @@ bootTWIX<- function(formula, data=NULL, nbagg=25, topN=1, subset=NULL, comb=NULL
 			}
 		}
 		if(is.null(seed.cluster)){
-			clusterSetupRNGstream(cluster,seed=sample(1:9999,6))
+			clusterSetRNGStream(cluster, iseed=sample(1:9999,6))
 		}
 		else{
-			clusterSetupRNGstream(cluster,seed=rep(seed.cluster,6))
+			clusterSetRNGStream(cluster, iseed=seed.cluster)
 		}
         clusterEvalQ(cluster, library(TWIX))
 		BG <- clusterApplyLB(cluster,1:nbagg,

@@ -1,7 +1,4 @@
-#include <R.h>
-#include <Rmath.h>
-#include <Rinternals.h>
-#include <Rdefines.h>
+
 
 #include "utils.h"
 
@@ -175,6 +172,7 @@ SEXP Dev_oob(SEXP obj, SEXP data, SEXP rsp){
 			}
 		}
 	}
+	Free(v_rsp);
 	UNPROTECT(1);
 	return(Imp_Dev);
 }

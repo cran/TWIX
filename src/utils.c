@@ -1,8 +1,7 @@
-#include <Rinternals.h>
-#include <Rdefines.h>
-#include <R.h>
-#include <Rmath.h>
-#include <math.h>
+
+
+#include "utils.h"
+
 
 
 int d2i_round(double Zahl)
@@ -21,7 +20,7 @@ int d2i_floor(double Zahl, int Stellen)
 
 
 double clogn(double x){
-	if (x <= 0.0) 
+	if (x <= FLT_EPSILON) 
 		return(0.0); 
 	else 
 		return(x*log(x));
@@ -29,7 +28,7 @@ double clogn(double x){
 
 
 
-int graycode(int *indy,int x){
+int graycode(int *indy,  int x){
 	int i;
     int maxc=x;
 
@@ -57,15 +56,21 @@ double dmax(double *X, int n)
 	return(max);
 }
 
+
+
+
 double SUMV_D(double *x, int N)
 {
 	int i;
-	double sum=0.0;
+	LDOUBLE sum=0.0;
     for (i = 0; i < N; i++){
 		sum += x[i];
 	}
-    return sum;
+    return(sum);
 }
+
+
+
 
 int SUMV_I(int *x, int N)
 {
@@ -74,19 +79,24 @@ int SUMV_I(int *x, int N)
     for (i = 0; i < N; i++){
 		sum += x[i];
 	}
-    return sum;
+    return(sum);
 }
 
 
-void cumsum(double *x, int nx, double *ans)
+
+
+
+void cumsum(const double *x, int nx, double *ans)
 {
     int i;
-    double sum = 0.0;
+    LDOUBLE sum = 0.;
     for (i = 0 ; i < nx ; i++) {
 		sum += x[i];
 		ans[i] = sum;
     }
 }
+
+
 
 
 static int rcmp_TW(double x, double y, Rboolean nalast)
@@ -99,6 +109,7 @@ static int rcmp_TW(double x, double y, Rboolean nalast)
     if (x > y)		return 1;
     return 0;
 }
+
 
 
 void rsort_index(double *x, int *indx, int n)
@@ -116,6 +127,8 @@ void rsort_index(double *x, int *indx, int n)
 	    x[j] = v; indx[j] = iv;
 	}
 }
+
+
 
 
 void c_rsort(double *x, int n)
@@ -153,10 +166,27 @@ void rsort_with_x(double *x, double *indx, int n)
 }
 
 
+void rsort_xyz(double *x, double *y, int *indx, int n)
+{
+    double v, iv, vi;
+    int i, j, h;
+	
+    for (h = 1; h <= n / 9; h = 3 * h + 1);
+    for (; h > 0; h /= 3)
+		for (i = h; i < n; i++) {
+			v = x[i]; iv = indx[i]; vi = y[i];
+			j = i;
+			while (j >= h && rcmp_TW(x[j - h], v, TRUE) > 0)
+			{ x[j] = x[j - h]; indx[j] = indx[j-h]; y[j] = y[j-h]; j -= h; }
+			x[j] = v; indx[j] = iv; y[j] = vi;
+		}
+}
+
 
 int nrow(SEXP x) {
     return(INTEGER(getAttrib(x, R_DimSymbol))[0]);
 }
+
 
 int ncol(SEXP x) {
     return(INTEGER(getAttrib(x, R_DimSymbol))[1]);
@@ -221,11 +251,13 @@ SEXP mysplit(SEXP X){
 }
 
 
-// search all of the local maxima of the x
-// 
-// @param:x is vector 
-// @param:N is length of the x
-// @param:indx index of the new sequence
+/******************************************
+* search all of the local maxima of the x
+* 
+* @param:x is vector 
+* @param:N is length of the x
+* @param:indx index of the new sequence
+*/
 
 void loc_maxima( double *x, int N, int *indx )
 {
@@ -250,14 +282,16 @@ void loc_maxima( double *x, int N, int *indx )
 }
 
 
-
-// sequence of the x
-// 
-// @param:x is vector 
-// @param:N is length of the x
-// @param:step increment of the sequence
-// @param:indx index of the new sequence
  
+/******************************************
+* sequence of the x
+* 
+* @param:x is vector 
+* @param:N is length of the x
+* @param:step increment of the sequence
+* @param:indx index of the new sequence
+*/
+
 void dev_seq( int N, int step, int *indx )
 {
 	int from = 0;
@@ -273,4 +307,36 @@ void dev_seq( int N, int step, int *indx )
 		indx[i*(step)] = 1;
 	}
 }
+
+
+
+
+
+/******************************************
+* combination methods
+*
+* @param : pred  list of predictions(matrix) 
+* @param : certanty a vector of weights
+*/
+
+SEXP bayes_comb( SEXP pred, SEXP certanty)
+{
+	// number of prediction matrices
+	int N = LENGTH(pred);
+	int nobs = LENGTH(VECTOR_ELT(pred,0));
+		
+	int i, j;
+	for(j=0; j < nobs; j++){
+		REAL(VECTOR_ELT(pred,0))[j] = REAL(certanty)[0] * REAL(VECTOR_ELT(pred,0))[j];
+	}
+	
+	for(j=0; j < nobs; j++){
+		for(i=1; i < N; i++){
+			REAL(VECTOR_ELT(pred,0))[j] += REAL(certanty)[i] * REAL(VECTOR_ELT(pred,i))[j];
+		}
+	}
+	return(pred);
+}
+
+
 

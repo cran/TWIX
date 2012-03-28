@@ -1,12 +1,12 @@
 TWIX <- function(formula, data=NULL, test.data=NULL, subset=NULL,
-        method="deviance", topn.method="complete", minsplit=30,
+        method="deviance", topn.method="complete", minsplit=20,
 		minbucket=round(minsplit/3), topN=1, splitf="deviance",
-		Devmin=0.05, tol=0.15, cp=0.01, level=30, st=1, score=1, k=0,
-		cluster=NULL, cl.level=1, multicore=FALSE,
+		Devmin=0.01, tol=0.25, cp=0.01, level=30, st=1, score=1, k=0,
+		cluster=NULL, seed.cluster=NULL, cl.level=1, multicore=FALSE,
 		trace=TRUE, trace.plot=FALSE, ...)
 {
     call <- match.call()
-    m <- match.call(expand=FALSE)
+    m <- match.call(expand.dots = FALSE)
     m$method <- m$topn.method <- m$test.data <- NULL
     m$minsplit <- m$minbucket <- m$trace <- m$cp <- NULL
     m$Devmin <- m$topN <- m$level <- m$st <- m$tol <- m$... <- NULL
@@ -56,15 +56,19 @@ TWIX <- function(formula, data=NULL, test.data=NULL, subset=NULL,
 		method <- 2
 	else
 		stop("\n   method must be one of deviance, local, grid !! \n")
-	if(!.Internal(inherits(rsp,"factor",FALSE))) {
+	if(!inherits(rsp,"factor",FALSE)) {
 		stop("\n   Response must be a factor!! \n")
 	}
 	if(splitf != "p-adj" & splitf != "deviance")
 			stop("\n   'splitf' must be 'deviance' or 'p-adj'! \n")
-    if(!is.null(cluster)) {
-        clusterSetupRNG(cluster)
+    if(!is.null(cluster)){
+		if(!is.null(seed.cluster)){
+			clusterSetRNGStream(cluster, iseed=seed.cluster)
+		}else{
+			clusterSetRNGStream(cluster, iseed=sample(1:9999,6))
+		}
         clusterEvalQ(cluster, library(TWIX))
-        }
+	}
     sp <- function(rsp, m, test.d=test.data, dmin=Devmin, minSplit=minsplit,
                 minBucket=minbucket, clname=cluster, cllevel=cl.level, topn=topN,
 				topn.meth=topn.method, levelN=level,lev=0, meth=method, lstep=st,
@@ -99,31 +103,35 @@ TWIX <- function(formula, data=NULL, test.data=NULL, subset=NULL,
 	}	
 	if(splf == "deviance"){
 		if(rob && lev < 3){
-			imp <- impor(m[,2:n],rsp,runs=10)
+			imp <- importance(m[,2:n],rsp,runs=10)
 			S <- .Call("var_split_dev", m, as.integer(meth), 
 						as.integer(lstep), as.integer(n_cut),
 						as.logical(FALSE), as.numeric(K),
 						as.integer(minBucket), as.integer(lev),
+						as.logical(TRUE), as.numeric(tl),
 						PACKAGE="TWIX")
 			for(v in 1:length(S)){
 				a <- ((S[[v]][[1]]/max(S[[v]][[1]])))*imp[[2]][v]*4
 				a[is.na(a)] <- 0
 				S[[v]][[1]] <- a
 			}
+			S <- .Call("split_summary_dev",S,as.numeric(tl),PACKAGE="TWIX")
 		}
 		else{
 			S <- .Call("var_split_dev", m, as.integer(meth), 
 						as.integer(lstep), as.integer(n_cut),
 						as.logical(FALSE), as.numeric(K),
 						as.integer(minBucket), as.integer(lev),
+						as.logical(FALSE), as.numeric(tl),
 						PACKAGE="TWIX")
 		}
 	}
 	else{
-		S <- .Call("var_split_adj", m, as.numeric(0.1), as.numeric(0.9), 
-					as.logical(FALSE), PACKAGE="TWIX")
+		S <- .Call("var_split_adj", m, as.numeric(0.1), as.numeric(0.9),
+				   as.logical(FALSE), as.logical(TRUE), as.numeric(tl),
+				   as.integer(minBucket), PACKAGE="TWIX")
+		S <- .Call("split_summary_padj", S, as.numeric(tl), PACKAGE="TWIX")
 	}
-	S <- .Call("split_sum",S,as.numeric(tl),PACKAGE="TWIX")
 	k <- length(S[[1]])
 	if(k < length(topn)){
 		topn <- 1:k
@@ -188,12 +196,12 @@ TWIX <- function(formula, data=NULL, test.data=NULL, subset=NULL,
 									splitnode_par,Lcut,Ltest,Sval=Sval,dmiN=dmin,minSplit=minSplit,
 									minBucket=minBucket,top=topN,meth=meth,
 									topnmeth=topn.meth,levelN=levelN,ll=lev,stt=st,Tol=tol,
-									kfold=K,splitfun=splf,rob),
+									kfold=K,splitfun=splf,Rob=rob, mc.preschedule = FALSE),
 						 right=mclapply(1:(h_level-1),
 									splitnode_par,Rcut,Rtest,Sval=Sval,dmiN=dmin,minSplit=minSplit,
 									minBucket=minBucket,top=topN,meth=meth,
 									topnmeth=topn.meth,levelN=levelN,ll=lev,stt=st,Tol=tol,
-									kfold=K,splitfun=splf,rob)
+									kfold=K,splitfun=splf,Rob=rob, mc.preschedule = FALSE)
 						 )
 			}
         }
@@ -487,7 +495,7 @@ TWIX <- function(formula, data=NULL, test.data=NULL, subset=NULL,
             if(length(KK)> 30)
                 Wbuk[id.out]<-(Wbuk[id.out])*0.25
             DF<-0.1*Wbuk+0.7*fit.tr/max(fit.tr)+0.2*(dev.tr/max(dev.tr))
-            }
+		}
         gr.tic <- DF[1] 
         if(length(KK)> 20)
             DF[d]<-0.1*(DF[d])

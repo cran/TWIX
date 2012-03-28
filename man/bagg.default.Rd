@@ -8,8 +8,8 @@
   Prediction of a new observation based on multiple trees.  
 }
 \usage{
-\method{bagg}{default}(object,newdata=NULL,sq=1:length(object$trees),
-     aggregation="weighted",\dots)
+\method{bagg}{default}(object,newdata = NULL, sq=1:length(object$trees),
+        aggregation = "weighted", type = "class", \dots)
 \method{bagg}{TWIX}(object,\dots)
 \method{bagg}{bootTWIX}(object,\dots)
 }
@@ -18,9 +18,12 @@
 \item{newdata}{a data frame of new observations.}
 \item{sq}{Integer vector indicating for which trees predictions are required.}
 \item{aggregation}{character string specifying how to aggregate. There are 
-	two ways to aggregate the TWIX trees. One of them is the class majority voting 
-	(\code{aggregation="majority"}) and another method is the weighted aggregation 
+	three ways to aggregate the TWIX trees. One of them is the class majority voting 
+	(\code{aggregation="majority"}), another method is the weighted aggregation 
 	(\code{aggregation="weighted"}).}
+\item{type}{character string indicating the type of predicted value returned. 
+	Either \code{class} predicted classes or \code{prob} estimated class 
+	probabilities are returned.}
 \item{\dots}{additional arguments.}
 }
 

@@ -36,31 +36,34 @@ sp.slave <- function(rsp, m, test.data, Dmin=0.01, minsplit=20,
 	}
 	if(splf == "deviance"){
 		if(rob && levv < 3){
-			imp <- impor(m[,2:n],rsp,runs=10)
+			imp <- importance(m[,2:n],rsp,runs=10)
 			S <- .Call("var_split_dev", m, as.integer(meth), 
 					   as.integer(lstep), as.integer(n_cut),
 					   as.logical(FALSE), as.numeric(KK),
 					   as.integer(minBucket), as.integer(lev),
+					   as.logical(TRUE), as.numeric(tl),
 					   PACKAGE="TWIX")
 			for(v in 1:length(S)){
 				a <- ((S[[v]][[1]]/max(S[[v]][[1]])))*imp[[2]][v]*4
 				a[is.na(a)] <- 0
 				S[[v]][[1]] <- a
 			}
+			S <- .Call("split_summary",S,as.numeric(tl),PACKAGE="TWIX")
 		}
 		else{
 			S <- .Call("var_split_dev", m, as.integer(meth), 
 					   as.integer(lstep), as.integer(n_cut),
 					   as.logical(FALSE), as.numeric(KK),
 					   as.integer(minBucket), as.integer(lev),
+					   as.logical(FALSE), as.numeric(tl),
 					   PACKAGE="TWIX")
 		}
 	}
 	else{
 		S <- .Call("var_split_adj", m, as.numeric(0.1), as.numeric(0.9),
-					as.logical(FALSE), PACKAGE="TWIX")
+				   as.logical(FALSE), as.numeric(tl),
+				   as.integer(minBucket), PACKAGE="TWIX")
 	}
-	S <- .Call("split_sum",S,as.numeric(tl),PACKAGE="TWIX")
 	k <- length(S[[1]])
 	if(k < length(topn)){
 		topn <- 1:k
